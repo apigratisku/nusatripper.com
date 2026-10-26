@@ -1,0 +1,11 @@
+# Folder media hasil upload admin.
+# Tolak eksekusi skrip apa pun di sini (cegah webshell / RCE).
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|phar|pl|py|cgi|sh|asp|aspx|jsp|htaccess)$">
+	Require all denied
+</FilesMatch>
+
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+
+# Jangan izinkan eksekusi CGI maupun listing direktori
+Options -ExecCGI -Indexes

@@ -1,0 +1,42 @@
+# CodeIgniter 3 — clean URL (tanpa index.php)
+
+# Pastikan index.php diprioritaskan (bukan index.html lama)
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+
+	# Jika project berada di sub-folder, sesuaikan RewriteBase
+	RewriteBase /
+
+	# Blokir akses langsung ke folder sistem
+	RewriteRule ^(application|system|tests)/ - [F,L]
+
+	# Blokir landing statis lama (sudah digantikan controller Home)
+	RewriteRule ^index(\s-\sCopy)?\.html$ - [R=404,L]
+
+	# Lewatkan file/folder yang benar-benar ada (assets, uploads, dll.)
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+	# Tanpa mod_rewrite, gunakan URL dengan index.php
+	ErrorDocument 404 /index.php
+</IfModule>
+
+# Cegah listing direktori
+Options -Indexes
+
+# Cache aset statis
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType text/css "access plus 7 days"
+	ExpiresByType application/javascript "access plus 7 days"
+	ExpiresByType image/jpeg "access plus 30 days"
+	ExpiresByType image/png "access plus 30 days"
+	ExpiresByType image/webp "access plus 30 days"
+	ExpiresByType video/mp4 "access plus 30 days"
+</IfModule>
