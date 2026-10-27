@@ -67,6 +67,18 @@ class Admin_Controller extends MY_Controller
 	/** @var string pesan error upload terakhir */
 	protected $upload_error = '';
 
+	/**
+	 * Peta hak akses: capability => role yang diizinkan.
+	 *
+	 * @var array
+	 */
+	protected $capabilities = array(
+		'users.manage'    => array('superadmin'),
+		'settings.manage' => array('superadmin'),
+		'content.view'    => array('superadmin', 'editor', 'viewer'),
+		'content.write'   => array('superadmin', 'editor'),
+	);
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -86,13 +98,65 @@ class Admin_Controller extends MY_Controller
 		$this->load->model('user_model');
 		$this->admin = $this->user_model->find($admin_id);
 
-		if (empty($this->admin))
+		// Akun dihapus atau dinonaktifkan: paksa logout.
+		if (empty($this->admin) || (isset($this->admin['is_active']) && ! (int) $this->admin['is_active']))
 		{
 			$this->session->sess_destroy();
 			redirect('admin/login');
 		}
 
-		$this->load->vars(array('admin' => $this->admin));
+		$this->load->vars(array(
+			'admin'     => $this->admin,
+			'can_write' => $this->capability('content.write'),
+		));
+	}
+
+	/**
+	 * Role akun yang sedang login.
+	 *
+	 * @return string
+	 */
+	protected function role()
+	{
+		return isset($this->admin['role']) ? (string) $this->admin['role'] : 'viewer';
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function is_superadmin()
+	{
+		return $this->role() === 'superadmin';
+	}
+
+	/**
+	 * Apakah akun aktif memiliki capability tertentu.
+	 *
+	 * @param string $capability
+	 * @return bool
+	 */
+	protected function capability($capability)
+	{
+		$allowed = isset($this->capabilities[$capability]) ? $this->capabilities[$capability] : array();
+
+		return in_array($this->role(), $allowed, TRUE);
+	}
+
+	/**
+	 * Hentikan request bila akun tidak berhak, lalu kembali ke dashboard.
+	 *
+	 * @param string $capability
+	 * @return void
+	 */
+	protected function require_capability($capability)
+	{
+		if ($this->capability($capability))
+		{
+			return;
+		}
+
+		$this->flash('error', 'Anda tidak memiliki akses untuk halaman tersebut.');
+		redirect('admin');
 	}
 
 	/**
@@ -325,6 +389,8 @@ class Admin_Resource extends Admin_Controller
 
 	public function index()
 	{
+		$this->require_capability('content.view');
+
 		$data = array(
 			'rows'    => $this->model->all(),
 			'columns' => $this->list_columns(),
@@ -335,6 +401,8 @@ class Admin_Resource extends Admin_Controller
 
 	public function create()
 	{
+		$this->require_capability('content.write');
+
 		$error = '';
 		$row   = $this->default_row();
 
@@ -367,6 +435,8 @@ class Admin_Resource extends Admin_Controller
 
 	public function edit($id = 0)
 	{
+		$this->require_capability('content.write');
+
 		$row = $this->model->find($id);
 
 		if ($row === NULL)
@@ -408,6 +478,8 @@ class Admin_Resource extends Admin_Controller
 
 	public function toggle($id = 0)
 	{
+		$this->require_capability('content.write');
+
 		$row = $this->model->find($id);
 
 		if ($row === NULL)
@@ -422,6 +494,8 @@ class Admin_Resource extends Admin_Controller
 
 	public function delete($id = 0)
 	{
+		$this->require_capability('content.write');
+
 		if ($this->input->method() !== 'post')
 		{
 			show_404();

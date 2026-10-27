@@ -17,13 +17,17 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== ''
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 	<link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
 	<meta name="theme-color" content="#0A2540">
+	<link rel="icon" type="image/svg+xml" href="<?= base_url('assets/images/favicon.svg') ?>">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/images/favicon-32x32.png') ?>">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/images/favicon-16x16.png') ?>">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/images/apple-touch-icon.png') ?>">
 </head>
 <body class="auth-body">
 
 <div class="auth-shell">
 	<div class="auth-card">
 		<div class="auth-brand">
-			<span class="auth-logo"><i class="fa-solid fa-compass"></i></span>
+			<img src="<?= base_url('assets/images/logo-icon.svg') ?>" alt="Logo" class="auth-logo" width="46" height="46">
 			<div>
 				<strong><?= html_escape($brand) ?></strong>
 				<small>Panel Administrator</small>

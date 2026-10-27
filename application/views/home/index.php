@@ -77,10 +77,6 @@ $parse_links = function ($en_key, $id_key) use ($val) {
 $footer_packages     = $parse_links('footer_links_en', 'footer_links_id');
 $footer_destinations = $parse_links('footer_dest_en', 'footer_dest_id');
 
-$meta_title  = $val('meta_title');
-$meta_desc   = $val('meta_description');
-$og_image    = $media('og_image');
-$canonical   = $val('canonical_url');
 $hero_bg     = $media('hero_image');
 $brand_title = $val('brand_title');
 $brand_sub   = $val('brand_subtitle');
@@ -91,58 +87,22 @@ $brand_sub   = $val('brand_subtitle');
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-	<title><?= html_escape($meta_title) ?></title>
-	<meta name="title" content="<?= html_escape($meta_title) ?>">
-	<meta name="description" content="<?= html_escape($meta_desc) ?>">
-	<meta name="keywords" content="<?= html_escape($val('meta_keywords')) ?>">
-	<meta name="author" content="<?= html_escape($brand_title) ?>">
-	<meta name="robots" content="index, follow">
-	<meta name="theme-color" content="#0A2540">
-	<?php if ($canonical !== ''): ?>
-	<link rel="canonical" href="<?= html_escape($canonical) ?>">
-	<?php endif; ?>
+	<?= $this->load->view('partials/seo_meta', array('seo' => $seo), TRUE) ?>
 
-	<!-- Open Graph -->
-	<meta property="og:type" content="website">
-	<meta property="og:title" content="<?= html_escape($meta_title) ?>">
-	<meta property="og:description" content="<?= html_escape($meta_desc) ?>">
-	<?php if ($canonical !== ''): ?>
-	<meta property="og:url" content="<?= html_escape($canonical) ?>">
-	<?php endif; ?>
-	<?php if ($og_image !== ''): ?>
-	<meta property="og:image" content="<?= html_escape($og_image) ?>">
+	<?php if ($hero_bg !== ''): ?>
+	<link rel="preload" as="image" href="<?= html_escape($hero_bg) ?>" fetchpriority="high">
 	<?php endif; ?>
 
 	<!-- Fonts & Icons -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
 	<link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
 
-	<script type="application/ld+json">
-	{
-		"@context": "https://schema.org",
-		"@type": "TravelAgency",
-		"name": <?= json_encode($val('site_name') !== '' ? $val('site_name') : $brand_title) ?>,
-		"description": <?= json_encode($meta_desc) ?>,
-		"url": <?= json_encode($canonical !== '' ? $canonical : base_url()) ?>,
-		"telephone": <?= json_encode('+'.$wa_number) ?>,
-		"address": {
-			"@type": "PostalAddress",
-			"addressLocality": "Lombok",
-			"addressRegion": "Nusa Tenggara Barat",
-			"addressCountry": "ID"
-		},
-		"areaServed": <?= json_encode($val('location')) ?>,
-		"aggregateRating": {
-			"@type": "AggregateRating",
-			"ratingValue": <?= json_encode($val('testi_rating')) ?>,
-			"reviewCount": <?= json_encode($val('testi_review_count')) ?>
-		}
-	}
-	</script>
+	<?= $this->load->view('partials/seo_jsonld', array('seo' => $seo), TRUE) ?>
 </head>
 <body>
 
@@ -169,7 +129,7 @@ $brand_sub   = $val('brand_subtitle');
 	<header class="site-header" id="navbar">
 		<div class="container nav-container">
 			<a href="#home" class="brand-logo" aria-label="<?= html_escape($brand_title) ?>">
-				<div class="logo-icon"><i class="fa-solid fa-compass"></i></div>
+				<img src="<?= base_url('assets/images/logo-icon.svg') ?>" alt="Logo" class="logo-icon-img" width="44" height="44">
 				<div class="logo-text">
 					<span class="brand-title" <?= i18n_attr($S('brand_title')) ?>><?= i18n_text($S('brand_title')) ?></span>
 					<span class="brand-subtitle" <?= i18n_attr($S('brand_subtitle')) ?>><?= i18n_text($S('brand_subtitle')) ?></span>
@@ -240,7 +200,7 @@ $brand_sub   = $val('brand_subtitle');
 							<source src="<?= html_escape($featured_video) ?>" type="video/mp4">
 						</video>
 						<?php elseif ($featured_poster !== ''): ?>
-						<img class="featured-video" src="<?= html_escape($featured_poster) ?>" alt="<?= html_escape($val('featured_title')) ?>" loading="lazy" decoding="async">
+						<?= img_tag($featured_poster, $val('featured_title'), 800, 600, ' class="featured-video"') ?>
 						<?php endif; ?>
 						<div class="img-badge">
 							<i class="fa-solid fa-star"></i> <span <?= i18n_attr($S('featured_badge')) ?>><?= i18n_text($S('featured_badge')) ?></span>
@@ -311,14 +271,11 @@ $brand_sub   = $val('brand_subtitle');
 					$cat      = isset($categories[$category]) ? $categories[$category] : $categories['diving'];
 					$badge    = trim((string) $package['badge_en']);
 					$style    = isset($badge_class[$package['badge_style']]) ? $badge_class[$package['badge_style']] : 'badge-popular';
-					$image    = $photo($package['image']);
 					$inclusions = lines_pair($package['inclusions_en'], $package['inclusions_id']);
 					?>
-					<article class="package-card" data-category="<?= html_escape($category) ?>">
+					<article class="package-card" id="package-<?= (int) $package['id'] ?>" data-category="<?= html_escape($category) ?>">
 						<div class="card-img-wrap">
-							<?php if ($image !== ''): ?>
-							<img src="<?= html_escape($image) ?>" alt="<?= html_escape($package['title_en']) ?>" loading="lazy" decoding="async">
-							<?php endif; ?>
+							<?= img_tag($package['image'], $package['title_en'], 600, 400) ?>
 							<?php if ($badge !== ''): ?>
 							<span class="card-badge <?= $style ?>" <?= i18n_attr(i18n_pair($package, 'badge')) ?>><?= i18n_text(i18n_pair($package, 'badge')) ?></span>
 							<?php endif; ?>
@@ -408,7 +365,7 @@ $brand_sub   = $val('brand_subtitle');
 						</video>
 						<span class="gallery-play"><i class="fa-solid fa-play"></i></span>
 						<?php elseif ($image !== ''): ?>
-						<img src="<?= html_escape($image) ?>" alt="<?= html_escape($item['title_en']) ?>" loading="lazy" decoding="async">
+						<?= img_tag($item['image'], $item['title_en'], 800, 600) ?>
 						<?php endif; ?>
 						<div class="gallery-overlay">
 							<div class="gallery-info">
@@ -505,7 +462,7 @@ $brand_sub   = $val('brand_subtitle');
 			<div class="footer-grid">
 				<div class="footer-col col-brand">
 					<div class="brand-logo footer-logo">
-						<div class="logo-icon"><i class="fa-solid fa-compass"></i></div>
+						<img src="<?= base_url('assets/images/logo-icon.svg') ?>" alt="Logo" class="logo-icon-img" width="44" height="44">
 						<div class="logo-text">
 							<span class="brand-title" <?= i18n_attr($S('brand_title')) ?>><?= i18n_text($S('brand_title')) ?></span>
 							<span class="brand-subtitle" <?= i18n_attr($S('brand_subtitle')) ?>><?= i18n_text($S('brand_subtitle')) ?></span>
@@ -581,6 +538,6 @@ $brand_sub   = $val('brand_subtitle');
 	</div>
 	<?php endif; ?>
 
-	<script src="<?= base_url('assets/js/main.js') ?>"></script>
+	<script src="<?= base_url('assets/js/main.js') ?>" defer></script>
 </body>
 </html>

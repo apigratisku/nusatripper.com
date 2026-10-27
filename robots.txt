@@ -1,0 +1,19 @@
+# robots.txt — https://nusatripper.com
+# Dibuat untuk produksi. Versi dinamis juga tersedia di controller Sitemap::robots().
+
+User-agent: *
+Allow: /
+
+# Folder sistem & area admin tidak boleh diindeks
+Disallow: /admin/
+Disallow: /application/
+Disallow: /system/
+
+# Aset statis boleh diindeks (gambar bisa muncul di Google Images)
+Allow: /assets/css/
+Allow: /assets/js/
+Allow: /assets/images/
+Allow: /uploads/
+
+# Sitemap
+Sitemap: https://nusatripper.com/sitemap.xml

@@ -1,42 +1,161 @@
-# CodeIgniter 3 — clean URL (tanpa index.php)
+# =============================================================================
+# nusatripper.com — Konfigurasi Apache
+# CodeIgniter 3 · portable: local dev (Alias/sub-folder) & hosting
+# =============================================================================
 
-# Pastikan index.php diprioritaskan (bukan index.html lama)
+# --- Dasar ---------------------------------------------------------------
 DirectoryIndex index.php
+AcceptPathInfo On
+
+# Nonaktifkan MultiViews supaya tidak bentrok dengan routing CI
+<IfModule mod_negotiation.c>
+	Options -MultiViews
+</IfModule>
+
+# Cegah listing direktori
+<IfModule mod_autoindex.c>
+	Options -Indexes
+</IfModule>
 
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 
-	# Jika project berada di sub-folder, sesuaikan RewriteBase
-	RewriteBase /
+	# CATATAN:
+	# RewriteBase sengaja TIDAK di-set supaya portabel untuk:
+	#   - hosting root domain : /
+	#   - sub-folder fisik    : /nama-folder/
+	#   - Alias Apache        : /nusatripper/ -> folder fisik lain
+	# Base URL ditangani di blok "3) Front controller" di bawah.
+	# Bila hosting memaksa, cukup aktifkan satu baris berikut:
+	# RewriteBase /
 
-	# Blokir akses langsung ke folder sistem
+	# ---------------------------------------------------------------------
+	# 1) CANONICAL (HTTPS + NON-WWW) — HANYA untuk domain produksi.
+	#    Sengaja dibatasi agar localhost / *.local / IP tetap via HTTP.
+	# ---------------------------------------------------------------------
+	RewriteCond %{HTTP_HOST} ^www\.nusatripper\.com$ [NC]
+	RewriteRule ^ https://nusatripper.com%{REQUEST_URI} [R=301,L]
+
+	RewriteCond %{HTTP_HOST} ^nusatripper\.com$ [NC]
+	RewriteCond %{HTTPS} !=on [OR]
+	RewriteCond %{HTTP:X-Forwarded-Proto} =http [NC]
+	RewriteRule ^ https://nusatripper.com%{REQUEST_URI} [R=301,L]
+
+	# ---------------------------------------------------------------------
+	# 2) Blokir akses langsung ke folder sistem
+	# ---------------------------------------------------------------------
 	RewriteRule ^(application|system|tests)/ - [F,L]
 
 	# Blokir landing statis lama (sudah digantikan controller Home)
 	RewriteRule ^index(\s-\sCopy)?\.html$ - [R=404,L]
 
-	# Lewatkan file/folder yang benar-benar ada (assets, uploads, dll.)
+	# ---------------------------------------------------------------------
+	# 3) Front controller CodeIgniter (clean URL tanpa index.php)
+	# ---------------------------------------------------------------------
+	RewriteCond %{REQUEST_URI} !/index\.php
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
 
+	# 3a) Kasus Alias Apache (mis. local: /nusatripper -> folder proyek).
+	#     Di sini substitusi relatif salah arah, jadi pakai prefix absolut
+	#     dari %{CONTEXT_PREFIX} (mis. "/nusatripper").
+	RewriteCond %{CONTEXT_PREFIX} !^$
+	RewriteRule ^(.*)$ %{CONTEXT_PREFIX}/index.php/$1 [L,QSA]
+
+	# 3b) Kasus normal: root domain / sub-folder fisik (hosting).
+	#     Substitusi relatif otomatis mengikuti folder .htaccess ini.
+	RewriteCond %{REQUEST_URI} !/index\.php
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
 	RewriteRule ^(.*)$ index.php/$1 [L,QSA]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-	# Tanpa mod_rewrite, gunakan URL dengan index.php
+	# Fallback bila mod_rewrite tidak tersedia
 	ErrorDocument 404 /index.php
 </IfModule>
 
-# Cegah listing direktori
-Options -Indexes
+# =============================================================================
+# 5) KOMPRESI — Brotli (prioritas) + Gzip fallback
+# =============================================================================
+<IfModule mod_brotli.c>
+	AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/xml text/javascript application/javascript application/json application/xml application/rss+xml image/svg+xml font/ttf font/otf font/woff font/woff2
+</IfModule>
 
-# Cache aset statis
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml text/javascript application/javascript application/json application/xml application/rss+xml image/svg+xml font/ttf font/otf font/woff font/woff2
+</IfModule>
+
+# =============================================================================
+# 6) LEVERAGE BROWSER CACHING
+# =============================================================================
 <IfModule mod_expires.c>
 	ExpiresActive On
-	ExpiresByType text/css "access plus 7 days"
-	ExpiresByType application/javascript "access plus 7 days"
-	ExpiresByType image/jpeg "access plus 30 days"
-	ExpiresByType image/png "access plus 30 days"
-	ExpiresByType image/webp "access plus 30 days"
-	ExpiresByType video/mp4 "access plus 30 days"
+	ExpiresDefault "access plus 1 month"
+
+	ExpiresByType text/css                  "access plus 1 month"
+	ExpiresByType application/javascript    "access plus 1 month"
+	ExpiresByType text/javascript           "access plus 1 month"
+
+	ExpiresByType image/jpeg                "access plus 1 year"
+	ExpiresByType image/png                 "access plus 1 year"
+	ExpiresByType image/webp                "access plus 1 year"
+	ExpiresByType image/avif                "access plus 1 year"
+	ExpiresByType image/gif                 "access plus 1 year"
+	ExpiresByType image/svg+xml             "access plus 1 year"
+	ExpiresByType image/x-icon              "access plus 1 year"
+
+	ExpiresByType font/woff2                "access plus 1 year"
+	ExpiresByType font/woff                 "access plus 1 year"
+	ExpiresByType font/ttf                  "access plus 1 year"
+	ExpiresByType font/otf                  "access plus 1 year"
+
+	ExpiresByType video/mp4                 "access plus 1 month"
+	ExpiresByType video/webm                "access plus 1 month"
+</IfModule>
+
+<IfModule mod_headers.c>
+	# Nama file aset bersifat unik (upload memakai encrypt_name) -> aman immutable.
+	<FilesMatch "\.(jpe?g|png|webp|avif|gif|svg|ico|woff2?|ttf|otf)$">
+		Header set Cache-Control "public, max-age=31536000, immutable"
+	</FilesMatch>
+
+	<FilesMatch "\.(css|js)$">
+		Header set Cache-Control "public, max-age=2592000"
+	</FilesMatch>
+
+	<FilesMatch "\.(mp4|webm)$">
+		Header set Cache-Control "public, max-age=2592000"
+	</FilesMatch>
+
+	<FilesMatch "\.(html|php)$">
+		Header set Cache-Control "no-cache, must-revalidate"
+	</FilesMatch>
+
+	# Agar cache/CDN memisahkan respons terkompresi
+	Header append Vary "Accept-Encoding"
+
+	# Header keamanan dasar (best practice, tanpa mengganggu SEO)
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# =============================================================================
+# 7) LINDUNGI FILE SENSITIF
+# =============================================================================
+<IfModule mod_authz_core.c>
+	<FilesMatch "(^\.|composer\.(json|lock)$|license\.txt$|readme\.rst$)">
+		Require all denied
+	</FilesMatch>
+</IfModule>
+
+# =============================================================================
+# 8) MIME TYPE MODERN (WebP / AVIF / WOFF2)
+# =============================================================================
+<IfModule mod_mime.c>
+	AddType image/webp  .webp
+	AddType image/avif  .avif
+	AddType font/woff2  .woff2
+	AddType application/xml .xml
 </IfModule>

@@ -41,20 +41,45 @@ class Auth extends MY_Controller
 
 				if ($user !== NULL)
 				{
+					$this->user_model->touch_login($user['id']);
+
 					$this->session->sess_regenerate(TRUE);
 					$this->session->set_userdata(array(
-						'admin_id'   => (int) $user['id'],
-						'admin_name' => $user['name'],
+						'admin_id'    => (int) $user['id'],
+						'admin_name'  => $user['name'],
+						'admin_role'  => isset($user['role']) ? $user['role'] : 'editor',
 					));
 
 					redirect('admin');
 				}
 
-				$error = 'Username atau password salah.';
+				$error = $this->login_error($username, $password);
 			}
 		}
 
 		$this->load->view('admin/auth/login', array('error' => $error));
+	}
+
+	/**
+	 * Pesan gagal login (membedakan akun nonaktif dari kredensial salah).
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @return string
+	 */
+	private function login_error($username, $password)
+	{
+		$user = $this->user_model->find_by_username($username);
+
+		if ($user !== NULL
+			&& password_verify($password, $user['password'])
+			&& isset($user['is_active'])
+			&& ! (int) $user['is_active'])
+		{
+			return 'Akun Anda dinonaktifkan. Hubungi Super Admin.';
+		}
+
+		return 'Username atau password salah.';
 	}
 
 	public function logout()

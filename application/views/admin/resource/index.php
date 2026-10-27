@@ -14,11 +14,13 @@ $rows    = isset($rows) ? $rows : array();
 		<h1><?= html_escape($resource_title) ?></h1>
 		<p>Kelola seluruh <?= html_escape(strtolower($resource_title)) ?> yang tampil di landing page.</p>
 	</div>
-	<div class="page-actions">
-		<a class="btn btn-primary" href="<?= site_url($resource_route.'/create') ?>">
-			<i class="fa-solid fa-plus"></i> Tambah <?= html_escape($resource_singular) ?>
-		</a>
-	</div>
+	<?php if ( ! empty($can_write)): ?>
+		<div class="page-actions">
+			<a class="btn btn-primary" href="<?= site_url($resource_route.'/create') ?>">
+				<i class="fa-solid fa-plus"></i> Tambah <?= html_escape($resource_singular) ?>
+			</a>
+		</div>
+	<?php endif; ?>
 </div>
 
 <div class="card">
@@ -26,7 +28,9 @@ $rows    = isset($rows) ? $rows : array();
 		<div class="empty-state">
 			<i class="fa-regular fa-folder-open"></i>
 			<p>Belum ada <?= html_escape(strtolower($resource_title)) ?>. Tambahkan item pertama Anda.</p>
-			<a class="btn btn-primary btn-sm" href="<?= site_url($resource_route.'/create') ?>">Tambah <?= html_escape($resource_singular) ?></a>
+			<?php if ( ! empty($can_write)): ?>
+				<a class="btn btn-primary btn-sm" href="<?= site_url($resource_route.'/create') ?>">Tambah <?= html_escape($resource_singular) ?></a>
+			<?php endif; ?>
 		</div>
 	<?php else: ?>
 		<div class="table-wrap">
@@ -36,7 +40,9 @@ $rows    = isset($rows) ? $rows : array();
 						<?php foreach ($columns as $col): ?>
 							<th><?= html_escape($col['label']) ?></th>
 						<?php endforeach; ?>
-						<th class="text-right">Aksi</th>
+						<?php if ( ! empty($can_write)): ?>
+							<th class="text-right">Aksi</th>
+						<?php endif; ?>
 					</tr>
 				</thead>
 				<tbody>
@@ -86,6 +92,7 @@ $rows    = isset($rows) ? $rows : array();
 								</td>
 							<?php endforeach; ?>
 
+							<?php if ( ! empty($can_write)): ?>
 							<td class="cell-actions">
 								<a class="btn btn-outline btn-sm" href="<?= site_url($resource_route.'/edit/'.$row['id']) ?>">
 									<i class="fa-solid fa-pen"></i> Edit
@@ -106,6 +113,7 @@ $rows    = isset($rows) ? $rows : array();
 									</button>
 								<?= form_close() ?>
 							</td>
+							<?php endif; ?>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>

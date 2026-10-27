@@ -61,7 +61,16 @@ $route['admin'] = 'admin/dashboard/index';
 $route['admin/login'] = 'admin/auth/login';
 $route['admin/logout'] = 'admin/auth/logout';
 $route['admin/account'] = 'admin/account/index';
+$route['admin/users'] = 'admin/users/index';
+$route['admin/users/create'] = 'admin/users/create';
+$route['admin/users/edit/(:num)'] = 'admin/users/edit/$1';
+$route['admin/users/toggle/(:num)'] = 'admin/users/toggle/$1';
+$route['admin/users/delete/(:num)'] = 'admin/users/delete/$1';
 
 // Landing page (opsional, semua section ada di halaman utama)
 $route['paket'] = 'home/index';
 $route['galeri'] = 'home/index';
+
+// SEO: sitemap XML & robots.txt dinamis
+$route['sitemap.xml'] = 'sitemap/index';
+$route['robots.txt'] = 'sitemap/robots';

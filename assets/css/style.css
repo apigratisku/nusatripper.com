@@ -361,6 +361,21 @@ button {
   min-width: 0;
 }
 
+.logo-icon-img {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: block;
+  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0, 168, 150, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.brand-logo:hover .logo-icon-img {
+  transform: scale(1.05) rotate(4deg);
+}
+
 .logo-icon {
   flex: 0 0 auto;
   width: 44px;

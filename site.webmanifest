@@ -1,0 +1,27 @@
+{
+    "name": "NusaTripper.com",
+    "short_name": "NusaTripper",
+    "description": "Lombok Tour, Diving & Sumbawa Whale Shark Expedition",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0A2540",
+    "theme_color": "#0A2540",
+    "icons": [
+        {
+            "src": "/assets/images/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/logo-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

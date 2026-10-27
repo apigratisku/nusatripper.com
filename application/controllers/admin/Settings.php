@@ -42,6 +42,8 @@ class Settings extends Admin_Controller
 
 	public function index()
 	{
+		$this->require_capability('settings.manage');
+
 		$this->load->model('setting_model');
 
 		if ($this->input->method() === 'post')

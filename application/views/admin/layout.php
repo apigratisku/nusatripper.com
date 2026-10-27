@@ -13,9 +13,13 @@ $nav = array(
 	array('key' => 'faqs', 'label' => 'FAQ', 'url' => 'admin/faqs', 'icon' => 'fa-solid fa-circle-question'),
 );
 
-$account_nav = array(
-	array('key' => 'account', 'label' => 'Akun Saya', 'url' => 'admin/account', 'icon' => 'fa-solid fa-user-gear'),
-);
+$role = isset($admin['role']) ? $admin['role'] : 'viewer';
+
+$account_nav = array();
+if ($role === 'superadmin') {
+	$account_nav[] = array('key' => 'users', 'label' => 'Kelola Pengguna', 'url' => 'admin/users', 'icon' => 'fa-solid fa-users-gear');
+}
+$account_nav[] = array('key' => 'account', 'label' => 'Akun Saya', 'url' => 'admin/account', 'icon' => 'fa-solid fa-user-gear');
 
 $page_title = isset($resource_title) ? $resource_title : (isset($page_title) ? $page_title : 'Dashboard');
 $admin_name = isset($admin['name']) && $admin['name'] !== '' ? $admin['name'] : 'Administrator';
@@ -34,6 +38,10 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== '' 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 	<link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
 	<meta name="theme-color" content="#0A2540">
+	<link rel="icon" type="image/svg+xml" href="<?= base_url('assets/images/favicon.svg') ?>">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/images/favicon-32x32.png') ?>">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/images/favicon-16x16.png') ?>">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/images/apple-touch-icon.png') ?>">
 </head>
 <body class="admin-body">
 
@@ -41,7 +49,7 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== '' 
 
 <aside class="admin-sidebar" id="adminSidebar" aria-label="Menu admin">
 	<div class="sidebar-brand">
-		<span class="auth-logo"><i class="fa-solid fa-compass"></i></span>
+		<img src="<?= base_url('assets/images/logo-icon.svg') ?>" alt="Logo" class="auth-logo" width="40" height="40">
 		<div>
 			<strong><?= html_escape($brand) ?></strong>
 			<small>Panel Administrator</small>
@@ -52,6 +60,7 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== '' 
 		<span class="sidebar-group">Konten</span>
 
 		<?php foreach ($nav as $item): ?>
+			<?php if ($item['key'] === 'settings' && $role !== 'superadmin') continue; ?>
 			<a class="sidebar-link<?= $current === $item['key'] ? ' is-active' : '' ?>" href="<?= site_url($item['url']) ?>">
 				<i class="<?= html_escape($item['icon']) ?>"></i>
 				<span><?= html_escape($item['label']) ?></span>
