@@ -249,6 +249,26 @@ class Admin_Controller extends MY_Controller
 	}
 
 	/**
+	 * Bersihkan seluruh file cache output CodeIgniter.
+	 *
+	 * @return void
+	 */
+	protected function clear_cache()
+	{
+		$files = glob(APPPATH.'cache/[a-f0-9]*');
+		if (is_array($files))
+		{
+			foreach ($files as $f)
+			{
+				if (is_file($f))
+				{
+					@unlink($f);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Render halaman admin memakai layout.
 	 *
 	 * @param string $view
@@ -425,6 +445,7 @@ class Admin_Resource extends Admin_Controller
 				}
 
 				$this->model->create($data);
+				$this->clear_cache();
 				$this->flash('success', $this->singular.' baru berhasil ditambahkan.');
 				redirect($this->route);
 			}
@@ -468,6 +489,7 @@ class Admin_Resource extends Admin_Controller
 				}
 
 				$this->model->update($id, $data);
+				$this->clear_cache();
 				$this->flash('success', $this->singular.' berhasil diperbarui.');
 				redirect($this->route);
 			}
@@ -488,6 +510,7 @@ class Admin_Resource extends Admin_Controller
 		}
 
 		$this->model->update($id, array('is_active' => empty($row['is_active']) ? 1 : 0));
+		$this->clear_cache();
 		$this->flash('success', 'Status '.strtolower($this->singular).' diperbarui.');
 		redirect($this->route);
 	}
@@ -513,6 +536,7 @@ class Admin_Resource extends Admin_Controller
 				}
 			}
 
+			$this->clear_cache();
 			$this->flash('success', $this->singular.' berhasil dihapus.');
 		}
 

@@ -127,6 +127,7 @@ class Settings extends Admin_Controller
 		}
 
 		$this->setting_model->update_many($values);
+		$this->clear_cache();
 
 		if ( ! empty($errors))
 		{
