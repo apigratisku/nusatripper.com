@@ -551,8 +551,8 @@ h1, h2, h3, h4 {
 .admin-content {
 	padding: 16px 14px calc(28px + env(safe-area-inset-bottom));
 	width: 100%;
-	max-width: 1180px;
-	margin: 0 auto;
+	max-width: 100%;
+	margin: 0;
 	flex: 1 1 auto;
 }
 
@@ -1019,6 +1019,7 @@ h1, h2, h3, h4 {
 .gap-8 { gap: 8px; }
 .wrap { flex-wrap: wrap; }
 .stack { display: grid; gap: 12px; }
+.quick-nav-grid { display: grid; gap: 10px; }
 .sr-only {
 	position: absolute;
 	width: 1px;
@@ -1034,7 +1035,7 @@ h1, h2, h3, h4 {
 
 @media (min-width: 560px) {
 	.stat-grid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.form-row.two {
@@ -1055,6 +1056,12 @@ h1, h2, h3, h4 {
 	}
 }
 
+@media (min-width: 768px) {
+	.stat-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
 @media (min-width: 900px) {
 	.admin-sidebar {
 		transform: none;
@@ -1064,6 +1071,8 @@ h1, h2, h3, h4 {
 
 	.admin-main {
 		margin-left: var(--sidebar-w);
+		width: calc(100% - var(--sidebar-w));
+		min-width: 0;
 	}
 
 	.admin-topbar {
@@ -1089,7 +1098,17 @@ h1, h2, h3, h4 {
 	}
 
 	.admin-content {
-		padding: 24px;
+		padding: 24px 28px calc(36px + env(safe-area-inset-bottom));
+	}
+
+	.quick-nav-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.settings-row {
+		grid-template-columns: 240px 1fr;
+		align-items: start;
+		gap: 20px;
 	}
 
 	.page-head h1 {
@@ -1111,8 +1130,8 @@ h1, h2, h3, h4 {
 
 	.data-table thead th {
 		text-align: left;
-		padding: 11px 14px;
-		font-size: 11px;
+		padding: 12px 16px;
+		font-size: 11.5px;
 		letter-spacing: .06em;
 		text-transform: uppercase;
 		color: var(--muted);
@@ -1135,7 +1154,7 @@ h1, h2, h3, h4 {
 
 	.data-table td {
 		display: table-cell;
-		padding: 12px 14px;
+		padding: 14px 16px;
 		border-bottom: 1px solid var(--border);
 	}
 
@@ -1146,7 +1165,7 @@ h1, h2, h3, h4 {
 	.data-table td.cell-actions {
 		border-top: none;
 		margin-top: 0;
-		padding-top: 12px;
+		padding-top: 14px;
 		white-space: nowrap;
 	}
 
@@ -1156,6 +1175,58 @@ h1, h2, h3, h4 {
 
 	.empty-state {
 		padding: 48px 24px;
+	}
+}
+
+@media (min-width: 1200px) {
+	.stat-grid {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 14px;
+	}
+
+	.quick-nav-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+	}
+
+	.admin-content {
+		padding: 28px 36px calc(40px + env(safe-area-inset-bottom));
+	}
+
+	.card-head {
+		padding: 16px 22px;
+	}
+
+	.card-body {
+		padding: 22px;
+	}
+
+	.form-card-head {
+		padding: 16px 22px;
+	}
+
+	.form-card-body {
+		padding: 22px;
+	}
+
+	.form-actions {
+		padding: 16px 22px;
+	}
+
+	.settings-row {
+		grid-template-columns: 280px 1fr;
+		gap: 24px;
+		padding: 16px 22px;
+	}
+}
+
+@media (min-width: 1600px) {
+	.admin-content {
+		padding: 32px 48px calc(48px + env(safe-area-inset-bottom));
+	}
+
+	.admin-topbar {
+		padding: 0 48px;
 	}
 }
 

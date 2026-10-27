@@ -89,7 +89,7 @@ $cards = array(
 		<p>Semua konten landing page dapat diubah dari sini.</p>
 	</div>
 	<div class="card-body">
-		<div class="stack">
+		<div class="quick-nav-grid">
 			<a class="btn btn-outline" href="<?= site_url('admin/settings') ?>">
 				<i class="fa-solid fa-pen-to-square"></i> Teks, SEO, Kontak &amp; Media Global
 			</a>

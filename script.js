@@ -10,7 +10,7 @@ const translations = {
     nav_packages: "Tour Packages",
     nav_whaleshark: "Whale Shark Expedition",
     nav_whyus: "Why Us",
-    nav_gallery: "NTB Gallery",
+    nav_gallery: "Gallery",
     nav_faq: "FAQ",
     btn_book_wa: "Book via WhatsApp",
     
@@ -138,7 +138,7 @@ const translations = {
     nav_packages: "Paket Wisata",
     nav_whaleshark: "Ekspedisi Hiu Paus",
     nav_whyus: "Keunggulan",
-    nav_gallery: "Galeri NTB",
+    nav_gallery: "Galeri",
     nav_faq: "FAQ",
     btn_book_wa: "Pesan via WhatsApp",
     

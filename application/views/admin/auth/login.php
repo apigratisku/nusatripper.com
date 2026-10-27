@@ -15,7 +15,7 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== ''
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-	<link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
+	<link rel="stylesheet" href="<?= base_url('assets/css/admin.css?v='.filemtime(FCPATH.'assets/css/admin.css')) ?>">
 	<meta name="theme-color" content="#0A2540">
 	<link rel="icon" type="image/svg+xml" href="<?= base_url('assets/images/favicon.svg') ?>">
 	<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/images/favicon-32x32.png') ?>">
