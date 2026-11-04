@@ -68,17 +68,51 @@
 
 			if (!target || !file) return;
 
-			if (target.tagName === 'VIDEO') {
-				target.src = URL.createObjectURL(file);
-				target.load();
-				target.hidden = false;
-			} else {
-				target.src = URL.createObjectURL(file);
-				target.hidden = false;
-			}
+			target.src = URL.createObjectURL(file);
+			target.hidden = false;
+
+			if (target.tagName === 'VIDEO') target.load();
 
 			var empty = document.querySelector(input.getAttribute('data-empty'));
 			if (empty) empty.hidden = true;
 		});
+	});
+
+	// Fallback media: kalau file gagal dimuat (path salah / file hilang),
+	// sembunyikan elemen rusak dan tampilkan kotak pengganti agar tidak blank.
+	function showFallback(el, selector) {
+		el.hidden = true;
+
+		var fallback = selector ? document.querySelector(selector) : null;
+		if (fallback) fallback.hidden = false;
+	}
+
+	// Thumbnail di tabel daftar: <img data-fallback="next"> -> elemen setelahnya.
+	document.querySelectorAll('[data-fallback]').forEach(function (el) {
+		el.addEventListener('error', function () {
+			var mode = el.getAttribute('data-fallback');
+			if (mode === 'next') {
+				var sibling = el.nextElementSibling;
+				if (sibling) sibling.classList.remove('is-hidden');
+				el.classList.add('is-hidden');
+				return;
+			}
+			showFallback(el, mode);
+		});
+	});
+
+	// Preview di form: <img|video data-empty="#empty-xxx">.
+	document.querySelectorAll('.media-preview[data-empty]').forEach(function (el) {
+		el.addEventListener('error', function () {
+			showFallback(el, el.getAttribute('data-empty'));
+		});
+
+		// Video tanpa sumber sama sekali tidak memicu "error"; pantau juga
+		// kegagalan metadata.
+		if (el.tagName === 'VIDEO') {
+			el.addEventListener('stalled', function () {
+				if (!el.getAttribute('src')) showFallback(el, el.getAttribute('data-empty'));
+			});
+		}
 	});
 })();

@@ -88,7 +88,18 @@ if ( ! function_exists('media_url'))
 			return $path;
 		}
 
-		return base_url(str_replace(' ', '%20', ltrim($path, '/')));
+		// Encode tiap segmen path supaya nama file yang mengandung spasi,
+		// "#", "&", "+", dan karakter non-ASCII tetap menghasilkan URL valid.
+		// rawurldecode() dulu agar nilai yang sudah ter-encode (mis. "%20")
+		// tidak berubah menjadi "%2520".
+		$segments = explode('/', ltrim($path, '/'));
+
+		foreach ($segments as $i => $segment)
+		{
+			$segments[$i] = rawurlencode(rawurldecode($segment));
+		}
+
+		return base_url(implode('/', $segments));
 	}
 }
 

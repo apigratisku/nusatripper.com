@@ -145,17 +145,26 @@
 
     mediaContainer.innerHTML = '';
 
+    // Kalau file media gagal dimuat, tampilkan pesan — bukan area kosong.
+    function showMediaError() {
+      mediaContainer.innerHTML = '<div class="lightbox-media-error">' +
+        '<i class="fa-solid fa-triangle-exclamation"></i>' +
+        '<span>Media tidak dapat dimuat</span></div>';
+    }
+
     if (item.type === 'video') {
       var video = document.createElement('video');
       video.src = item.src;
       video.controls = true;
       video.autoplay = true;
       video.playsInline = true;
+      video.addEventListener('error', showMediaError);
       mediaContainer.appendChild(video);
     } else {
       var img = document.createElement('img');
       img.src = item.src;
       img.alt = item.caption || '';
+      img.addEventListener('error', showMediaError);
       mediaContainer.appendChild(img);
     }
 
@@ -207,14 +216,30 @@
           btn.className = 'lightbox-thumb' + (idx === galleryIndex ? ' active' : '');
           btn.setAttribute('aria-label', 'Media ' + (idx + 1));
 
-          if (thumb.type === 'video') {
+          // Thumbnail: pakai poster (foto) bila ada. Video tanpa poster
+          // cukup ikon play supaya tidak muncul gambar rusak.
+          var poster = thumb.thumb || '';
+          if (thumb.type === 'video' && poster === '') {
             btn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
           } else {
             var thumbImg = document.createElement('img');
-            thumbImg.src = thumb.src;
+            thumbImg.src = poster || thumb.src;
             thumbImg.alt = '';
             thumbImg.loading = 'lazy';
             btn.appendChild(thumbImg);
+
+            // Foto poster gagal dimuat: ganti dengan ikon supaya tidak blank.
+            thumbImg.addEventListener('error', function () {
+              btn.innerHTML = thumb.type === 'video'
+                ? '<i class="fa-solid fa-circle-play"></i>'
+                : '<i class="fa-regular fa-image"></i>';
+            });
+
+            if (thumb.type === 'video') {
+              var badge = document.createElement('i');
+              badge.className = 'fa-solid fa-circle-play lightbox-thumb-play';
+              btn.appendChild(badge);
+            }
           }
 
           btn.addEventListener('click', function (e) {

@@ -761,6 +761,33 @@ h1, h2, h3, h4 {
 	font-size: 14px;
 }
 
+/* Thumbnail media (foto/video) di tabel daftar */
+.thumb-wrap {
+	position: relative;
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.thumb-wrap .thumb {
+	display: block;
+}
+
+.thumb-play {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: #fff;
+	font-size: 15px;
+	text-shadow: 0 1px 5px rgba(0, 0, 0, .55);
+	pointer-events: none;
+}
+
+/* Dipakai JS/fallback server-side untuk menyembunyikan elemen kosong */
+.is-hidden {
+	display: none !important;
+}
+
 /* ------------------------------ Badges ---------------------------- */
 
 .badge {
@@ -925,6 +952,12 @@ h1, h2, h3, h4 {
 	color: #9aa8b8;
 	font-size: 12px;
 	background: #fff;
+}
+
+/* Atribut [hidden] kalah specific-nya dari display:grid di atas. */
+.media-empty[hidden],
+.media-preview[hidden] {
+	display: none;
 }
 
 .form-actions {

@@ -134,7 +134,7 @@ class Gallery extends Admin_Resource
 	protected function list_columns()
 	{
 		return array(
-			array('name' => 'image', 'label' => 'Media', 'type' => 'image'),
+			array('name' => 'image', 'label' => 'Media', 'type' => 'media'),
 			array('name' => 'title', 'label' => 'Judul', 'type' => 'bilingual'),
 			array('name' => 'package_label', 'label' => 'Paket', 'type' => 'package'),
 			array('name' => 'media_type', 'label' => 'Tipe', 'type' => 'text'),

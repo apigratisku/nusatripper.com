@@ -32,10 +32,12 @@ if ( ! function_exists('webp_url'))
 			return $path;
 		}
 
-		$relative = ltrim(str_replace(' ', '%20', $path), '/');
+		$relative = ltrim($path, '/');
 		$webp     = preg_replace('/\.(jpe?g|png)$/i', '.webp', $relative);
 
-		if ($webp !== $relative && is_file(FCPATH.$webp))
+		// Cek file di disk memakai path asli (bukan versi ter-encode) supaya
+		// nama file berspasi tetap dikenali.
+		if ($webp !== $relative && is_file(FCPATH.rawurldecode($webp)))
 		{
 			$relative = $webp;
 		}

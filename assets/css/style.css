@@ -1105,6 +1105,26 @@ button {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
+/* Media gagal dimuat: tampilkan pesan, bukan area kosong. */
+.lightbox-media-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 260px;
+  padding: 40px 28px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.lightbox-media-error i {
+  font-size: 1.6rem;
+  color: var(--accent-gold);
+}
+
 .lightbox-close-btn {
   position: absolute;
   top: -45px;
@@ -1227,6 +1247,23 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Penanda video di atas poster thumbnail. */
+.lightbox-thumb {
+  position: relative;
+}
+
+.lightbox-thumb-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 .lightbox-thumb:hover {
@@ -1380,11 +1417,31 @@ button {
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.card-gal-thumb img {
+.card-gal-thumb img,
+.card-gal-thumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* Fallback bila foto/video belum diisi: ikon netral, bukan kotak kosong. */
+.card-gal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #eef2f7;
+  color: #a8b6c6;
+  font-size: 0.85rem;
+}
+
+/* Atribut [hidden] kalah specific-nya dari display:flex di atas. */
+.card-gal-empty[hidden],
+.card-gal-thumb img[hidden],
+.card-gal-thumb video[hidden] {
+  display: none;
 }
 
 .card-gallery:hover .card-gal-thumb {

@@ -135,21 +135,41 @@ $is_media = function ($type) {
 						<input type="hidden" name="<?= html_escape($name) ?>" value="<?= html_escape($val) ?>">
 
 						<div class="media-box">
-							<?php if ($val !== '' && $type === 'image'): ?>
-								<img class="media-preview" id="preview-<?= html_escape($name) ?>" src="<?= html_escape(media_url($val)) ?>" alt="Pratinjau">
-							<?php elseif ($val !== '' && $type === 'video'): ?>
-								<video class="media-preview is-video" id="preview-<?= html_escape($name) ?>" src="<?= html_escape(media_url($val)) ?>" controls muted playsinline preload="metadata"></video>
+							<?php $has_media = trim((string) $val) !== ''; ?>
+
+							<?php if ($type === 'video'): ?>
+								<?php
+								// Poster: pakai foto baris ini supaya preview tidak hitam/kosong.
+								$poster = '';
+								if ($name !== 'image' && ! empty($row['image']))
+								{
+									$poster = media_url($row['image']);
+								}
+								?>
+								<video
+									class="media-preview is-video"
+									id="preview-<?= html_escape($name) ?>"
+									<?= $has_media ? 'src="'.html_escape(media_url($val)).'#t=0.1"' : '' ?>
+									<?= $poster !== '' ? 'poster="'.html_escape($poster).'"' : '' ?>
+									data-empty="#empty-<?= html_escape($name) ?>"
+									controls muted playsinline preload="metadata"
+									<?= $has_media ? '' : 'hidden' ?>
+								></video>
 							<?php else: ?>
-								<div class="media-empty" id="empty-<?= html_escape($name) ?>">
-									<i class="fa-regular <?= $type === 'video' ? 'fa-circle-play' : 'fa-image' ?>" style="font-size:20px"></i>
-									<span>Belum ada <?= $type === 'video' ? 'video' : 'gambar' ?></span>
-								</div>
-								<?php if ($type === 'video'): ?>
-									<video class="media-preview is-video" id="preview-<?= html_escape($name) ?>" hidden controls muted playsinline></video>
-								<?php else: ?>
-									<img class="media-preview" id="preview-<?= html_escape($name) ?>" alt="Pratinjau" hidden>
-								<?php endif; ?>
+								<img
+									class="media-preview"
+									id="preview-<?= html_escape($name) ?>"
+									<?= $has_media ? 'src="'.html_escape(media_url($val)).'"' : '' ?>
+									data-empty="#empty-<?= html_escape($name) ?>"
+									alt="Pratinjau"
+									<?= $has_media ? '' : 'hidden' ?>
+								>
 							<?php endif; ?>
+
+							<div class="media-empty" id="empty-<?= html_escape($name) ?>"<?= $has_media ? ' hidden' : '' ?>>
+								<i class="fa-regular <?= $type === 'video' ? 'fa-circle-play' : 'fa-image' ?>" style="font-size:20px"></i>
+								<span><?= $has_media ? 'Media gagal dimuat' : 'Belum ada '.($type === 'video' ? 'video' : 'gambar') ?></span>
+							</div>
 
 							<input
 								type="file"
@@ -160,7 +180,7 @@ $is_media = function ($type) {
 								data-empty="#empty-<?= html_escape($name) ?>"
 							>
 
-							<?php if ($val !== ''): ?>
+							<?php if ($has_media): ?>
 								<label class="checkbox">
 									<input type="checkbox" name="<?= html_escape($name) ?>_remove" value="1">
 									<span>Hapus <?= $type === 'video' ? 'video' : 'gambar' ?> saat ini</span>

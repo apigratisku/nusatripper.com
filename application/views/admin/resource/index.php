@@ -68,6 +68,24 @@ $rows    = isset($rows) ? $rows : array();
 											<span class="thumb thumb-placeholder"><i class="fa-regular fa-image"></i></span>
 										<?php endif; ?>
 
+									<?php elseif ($type === 'media'): ?>
+										<?php
+										$media_img   = ! empty($row[$name]) ? media_url($row[$name]) : '';
+										$media_video = ! empty($row['video']) ? media_url($row['video']) : '';
+										$media_vid   = (isset($row['media_type']) && $row['media_type'] === 'video' && $media_video !== '');
+										?>
+										<span class="thumb-wrap">
+											<?php if ($media_img !== ''): ?>
+												<img class="thumb" src="<?= html_escape($media_img) ?>" alt="" loading="lazy" data-fallback="next">
+											<?php elseif ($media_vid): ?>
+												<video class="thumb" src="<?= html_escape($media_video) ?>#t=0.5" muted playsinline preload="metadata" data-fallback="next"></video>
+											<?php endif; ?>
+											<span class="thumb thumb-placeholder<?= ($media_img !== '' || $media_vid) ? ' is-hidden' : '' ?>"><i class="fa-regular fa-image"></i></span>
+											<?php if ($media_vid): ?>
+												<i class="fa-solid fa-circle-play thumb-play" aria-hidden="true"></i>
+											<?php endif; ?>
+										</span>
+
 									<?php elseif ($type === 'badge'): ?>
 										<?php $style = isset($row['badge_style']) ? $row['badge_style'] : ''; ?>
 										<?php if ( ! empty($row[$name.'_en'])): ?>

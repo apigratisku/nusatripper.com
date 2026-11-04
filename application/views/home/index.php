@@ -54,10 +54,14 @@ $gallery_media = function (array $items) use ($photo) {
 			continue;
 		}
 
+		// Poster/thumbnail: foto item bila ada. Item video tanpa foto akan
+		// memakai ikon play di lightbox, bukan kotak kosong.
+		$thumb = trim((string) $item['image']) !== '' ? webp_url($item['image']) : '';
+
 		$out[] = array(
 			'type'            => $is_video ? 'video' : 'image',
 			'src'             => $src,
-			'thumb'           => webp_url($item['image']),
+			'thumb'           => $thumb,
 			'caption_en'      => (string) $item['title_en'],
 			'caption_id'      => (string) $item['title_id'],
 			'category_en'     => (string) $item['category_en'],
@@ -145,7 +149,7 @@ $brand_sub   = $val('brand_subtitle');
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
-	<link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+	<link rel="stylesheet" href="<?= base_url('assets/css/style.css?v='.filemtime(FCPATH.'assets/css/style.css')) ?>">
 
 	<?= $this->load->view('partials/seo_jsonld', array('seo' => $seo), TRUE) ?>
 </head>
@@ -367,9 +371,20 @@ $brand_sub   = $val('brand_subtitle');
 								<?php
 								$gal_is_video = ($gal_item['media_type'] === 'video' && trim((string) $gal_item['video']) !== '');
 							$gal_cap      = i18n_pair($gal_item, 'title');
+
+							// Thumbnail: pakai foto bila ada; kalau kosong tapi item
+							// berupa video, tampilkan frame pertama video supaya
+							// kotak preview tidak blank.
+							$gal_thumb = trim((string) $gal_item['image']) !== '' ? webp_url($gal_item['image']) : '';
+							$gal_video = $gal_is_video ? media_url($gal_item['video']) : '';
 								?>
 							<span class="card-gal-thumb<?= $gal_i === 2 && $gal_count > 3 ? ' has-more' : '' ?>" data-gallery-index="<?= $gal_i ?>">
-								<img src="<?= html_escape(webp_url($gal_item['image'])) ?>" alt="<?= html_escape($gal_cap['en']) ?>" loading="lazy" decoding="async">
+								<?php if ($gal_thumb !== ''): ?>
+								<img src="<?= html_escape($gal_thumb) ?>" alt="<?= html_escape($gal_cap['en']) ?>" loading="lazy" decoding="async" onerror="this.hidden=true;this.parentNode.querySelector('.card-gal-empty').removeAttribute('hidden')">
+								<?php elseif ($gal_video !== ''): ?>
+								<video src="<?= html_escape($gal_video) ?>#t=0.5" muted playsinline preload="metadata" aria-label="<?= html_escape($gal_cap['en']) ?>" onerror="this.hidden=true;this.parentNode.querySelector('.card-gal-empty').removeAttribute('hidden')"></video>
+								<?php endif; ?>
+								<span class="card-gal-empty"<?= ($gal_thumb !== '' || $gal_video !== '') ? ' hidden' : '' ?> aria-hidden="true"><i class="fa-regular fa-image"></i></span>
 								<?php if ($gal_is_video): ?>
 								<i class="fa-solid fa-circle-play card-gal-play"></i>
 								<?php endif; ?>
@@ -637,7 +652,7 @@ $brand_sub   = $val('brand_subtitle');
 	</div>
 	<?php endif; ?>
 
-	<script src="<?= base_url('assets/js/main.js') ?>" defer></script>
+	<script src="<?= base_url('assets/js/main.js?v='.filemtime(FCPATH.'assets/js/main.js')) ?>" defer></script>
 	<script>
 	// Data galeri per paket untuk modal lightbox (diisi server-side).
 	window.PACKAGE_GALLERIES = <?= json_encode($package_galleries_json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;

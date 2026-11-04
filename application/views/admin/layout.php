@@ -118,6 +118,6 @@ $brand = isset($site['brand_title']['en']) && $site['brand_title']['en'] !== '' 
 	</main>
 </div>
 
-<script src="<?= base_url('assets/js/admin.js') ?>"></script>
+<script src="<?= base_url('assets/js/admin.js?v='.filemtime(FCPATH.'assets/js/admin.js')) ?>"></script>
 </body>
 </html>
