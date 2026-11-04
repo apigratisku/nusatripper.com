@@ -35,16 +35,38 @@ class MY_Controller extends CI_Controller
 	 */
 	protected function ensure_schema()
 	{
-		if ( ! $this->db->table_exists('gallery') || $this->db->field_exists('package_id', 'gallery'))
+		if ( ! $this->db->table_exists('gallery'))
 		{
 			return;
 		}
 
 		$this->load->dbforge();
 
-		$this->dbforge->add_column('gallery', array(
-			'package_id' => array('type' => 'INTEGER', 'default' => 0),
-		));
+		$columns = array(
+			'package_id'     => array('type' => 'INTEGER', 'default' => 0),
+			'category_en'    => array('type' => 'TEXT',    'default' => ''),
+			'category_id'    => array('type' => 'TEXT',    'default' => ''),
+			'description_en' => array('type' => 'TEXT',    'default' => ''),
+			'description_id' => array('type' => 'TEXT',    'default' => ''),
+		);
+
+		$added = FALSE;
+
+		foreach ($columns as $name => $definition)
+		{
+			if ( ! $this->db->field_exists($name, 'gallery'))
+			{
+				$this->dbforge->add_column('gallery', array($name => $definition));
+				$added = TRUE;
+			}
+		}
+
+		// Buang flag migrasi lama supaya cache render tidak memakai data
+		// bertanda "instalasi lama" setelah kolom benar-benar ada.
+		if ($added)
+		{
+			@unlink(APPPATH.'cache/ci_migrated_gallery');
+		}
 	}
 
 	/**
@@ -588,6 +610,47 @@ class Admin_Resource extends Admin_Controller
 	}
 
 	/**
+	 * Apakah seluruh kolom milik satu field ada di tabel?
+	 *
+	 * @param array $columns
+	 * @return bool
+	 */
+	protected function columns_exist(array $columns)
+	{
+		foreach ($columns as $column)
+		{
+			if ( ! $this->column_exists($column))
+			{
+				return FALSE;
+			}
+		}
+
+		return TRUE;
+	}
+
+	/**
+	 * Kolom database yang dipakai satu field.
+	 *
+	 * Field bilingual disimpan sebagai dua kolom (_en & _id), jadi pengecekan
+	 * keberadaan kolom harus pakai nama kolom asli, bukan nama field.
+	 *
+	 * @param array $field
+	 * @return array
+	 */
+	protected function field_columns(array $field)
+	{
+		$type = isset($field['type']) ? $field['type'] : 'text';
+		$name = $field['name'];
+
+		if ($type === 'bilingual_text' || $type === 'bilingual_textarea')
+		{
+			return array($name.'_en', $name.'_id');
+		}
+
+		return array($name);
+	}
+
+	/**
 	 * Nilai default form tambah.
 	 *
 	 * @return array
@@ -596,17 +659,10 @@ class Admin_Resource extends Admin_Controller
 	{
 		$row = array();
 
-		foreach ($this->all_fields() as $field)
+		foreach ($this->existing_fields() as $field)
 		{
 			$type = isset($field['type']) ? $field['type'] : 'text';
 			$name = $field['name'];
-
-			// Kolom yang belum ada di tabel (instalasi lama) dilewati supaya
-			// form tidak menampilkan isian yang tak bisa disimpan.
-			if ( ! $this->column_exists($name))
-			{
-				continue;
-			}
 
 			$default = isset($field['default']) ? $field['default'] : '';
 
@@ -625,6 +681,26 @@ class Admin_Resource extends Admin_Controller
 	}
 
 	/**
+	 * Field yang kolomnya ada di tabel.
+	 *
+	 * @return array
+	 */
+	protected function existing_fields()
+	{
+		$fields = array();
+
+		foreach ($this->fields() as $field)
+		{
+			if ($this->columns_exist($this->field_columns($field)))
+			{
+				$fields[] = $field;
+			}
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * Ambil seluruh nilai input sesuai definisi field.
 	 *
 	 * @return array
@@ -633,17 +709,10 @@ class Admin_Resource extends Admin_Controller
 	{
 		$data = array();
 
-		foreach ($this->all_fields() as $field)
+		foreach ($this->existing_fields() as $field)
 		{
 			$name = $field['name'];
 			$type = isset($field['type']) ? $field['type'] : 'text';
-
-			// Kolom yang belum ada di tabel (instalasi lama) dilewati supaya
-			// query tidak gagal; ensure_schema() membuatnya otomatis.
-			if ( ! $this->column_exists($name))
-			{
-				continue;
-			}
 
 			switch ($type)
 			{

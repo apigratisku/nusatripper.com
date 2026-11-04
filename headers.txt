@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8899
+Date: Wed, 04 Nov 2026 02:32:21 GMT
+Connection: close
+X-Powered-By: PHP/7.4.33
+Set-Cookie: csrf_cookie=d96363160be39bc18d17156ee0fc61c9; expires=Wed, 04-Nov-2026 04:32:20 GMT; Max-Age=7200; path=/; SameSite=Strict
+Set-Cookie: ci_session=cikvq5v7e5526a1p0r5ravrv2k3a41rd; expires=Wed, 04-Nov-2026 04:32:21 GMT; Max-Age=7200; path=/; HttpOnly; SameSite=Lax
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Content-type: text/html; charset=UTF-8
+
