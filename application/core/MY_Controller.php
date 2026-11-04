@@ -206,16 +206,110 @@ class Admin_Controller extends MY_Controller
 	}
 
 	/**
+	 * Batas ukuran file per tipe media (dalam kilobyte).
+	 *
+	 * Video jauh lebih besar dari gambar, jadi dipisah agar tidak terpotong
+	 * oleh batas default 25 MB.
+	 *
+	 * @var array
+	 */
+	protected $media_max_kb = array(
+		'image' => 10240,   // 10 MB
+		'video' => 204800,  // 200 MB
+	);
+
+	/**
+	 * Nilai byte dari setting PHP (mis. "40M" -> 41943040).
+	 *
+	 * @param string $key
+	 * @return int
+	 */
+	protected function php_bytes($key)
+	{
+		$val = ini_get($key);
+
+		if ($val === FALSE || $val === '')
+		{
+			return 0;
+		}
+
+		$val = trim($val);
+		$unit = strtolower(substr($val, -1));
+		$num = (float) $val;
+
+		switch ($unit)
+		{
+			case 'g': $num *= 1024;
+			case 'm': $num *= 1024;
+			case 'k': $num *= 1024;
+		}
+
+		return (int) $num;
+	}
+
+	/**
+	 * Label mudah dibaca untuk limit PHP (mis. "40 MB").
+	 *
+	 * @param string $key
+	 * @return string
+	 */
+	protected function php_size_label($key)
+	{
+		$bytes = $this->php_bytes($key);
+
+		if ($bytes <= 0)
+		{
+			return 'tidak terbatas';
+		}
+
+		if ($bytes >= 1048576)
+		{
+			return round($bytes / 1048576, 1).' MB';
+		}
+
+		return round($bytes / 1024).' KB';
+	}
+
+	/**
+	 * Apakah body request lebih besar dari post_max_size?
+	 *
+	 * Saat itu terjadi PHP membuang seluruh $_POST dan $_FILES, jadi form
+	 * terlihat seperti tidak mengirim apa pun. Deteksi lewat
+	 * CONTENT_LENGTH supaya admin dapat pesan yang jelas.
+	 *
+	 * @return bool
+	 */
+	protected function request_too_large()
+	{
+		$limit = $this->php_bytes('post_max_size');
+
+		if ($limit <= 0 || empty($_SERVER['CONTENT_LENGTH']))
+		{
+			return FALSE;
+		}
+
+		return (int) $_SERVER['CONTENT_LENGTH'] > $limit;
+	}
+
+	/**
 	 * Proses upload file dari form.
 	 *
 	 * @param string $field         Nama input file
 	 * @param string $allowed_types Ekstensi yang diizinkan (format CI)
-	 * @param int    $max_kb
+	 * @param int    $max_kb        Batas ukuran (KB); 0 = ikuti batas PHP
 	 * @return string|null Path relatif "uploads/xxx.ext" atau NULL jika tidak ada file
 	 */
-	protected function do_upload($field, $allowed_types = 'jpg|jpeg|png|webp|gif', $max_kb = 25600)
+	protected function do_upload($field, $allowed_types = 'jpg|jpeg|png|webp|gif', $max_kb = 0)
 	{
 		$this->upload_error = '';
+
+		// File melebihi post_max_size tidak pernah sampai ke $_FILES sama sekali
+		// (CI hanya melihat field kosong), jadi deteksi manual supaya pesannya jelas.
+		if ($this->request_too_large())
+		{
+			$this->upload_error = 'Ukuran data terlalu besar (melebihi batas server '.$this->php_size_label('post_max_size').').';
+			return NULL;
+		}
 
 		if (empty($_FILES[$field]['name']))
 		{
@@ -228,6 +322,11 @@ class Admin_Controller extends MY_Controller
 		{
 			$this->upload_error = 'Folder uploads tidak dapat dibuat. Periksa izin folder.';
 			return NULL;
+		}
+
+		if ($max_kb <= 0)
+		{
+			$max_kb = isset($this->media_max_kb['image']) ? (int) $this->media_max_kb['image'] : 10240;
 		}
 
 		$config = array(
@@ -788,9 +887,10 @@ class Admin_Resource extends Admin_Controller
 					}
 
 					$upload = $this->do_upload(
-						$name.'_file',
-						$type === 'video' ? 'mp4|webm|ogg|mov' : 'jpg|jpeg|png|webp|gif'
-					);
+					$name.'_file',
+					$type === 'video' ? 'mp4|webm|ogg|mov|m4v|avi|mkv' : 'jpg|jpeg|png|webp|gif',
+					isset($this->media_max_kb[$type]) ? (int) $this->media_max_kb[$type] : 0
+				);
 
 					if ($upload !== NULL)
 					{

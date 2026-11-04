@@ -94,9 +94,10 @@ class Settings extends Admin_Controller
 				}
 
 				$upload = $this->do_upload(
-					$key.'_file',
-					$type === 'video' ? 'mp4|webm|ogg|mov' : 'jpg|jpeg|png|webp|gif'
-				);
+				$key.'_file',
+				$type === 'video' ? 'mp4|webm|ogg|mov|m4v|avi|mkv' : 'jpg|jpeg|png|webp|gif',
+				isset($this->media_max_kb[$type]) ? (int) $this->media_max_kb[$type] : 0
+			);
 
 				if ($this->upload_error !== '')
 				{
