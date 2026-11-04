@@ -235,7 +235,9 @@ class Admin_Controller extends MY_Controller
 			'allowed_types'    => $allowed_types,
 			'max_size'         => $max_kb,
 			'file_ext_tolower' => TRUE,
-			'encrypt_name'     => TRUE,
+			// Nama final dirapikan manual di unique_media_name() supaya
+			// tetap mudah dikenali tapi dijamin unik.
+			'encrypt_name'     => FALSE,
 			'remove_spaces'    => TRUE,
 		);
 
@@ -250,7 +252,53 @@ class Admin_Controller extends MY_Controller
 
 		$data = $this->upload->data();
 
-		return 'uploads/'.$data['file_name'];
+		$file = $this->unique_media_name($path, $data['client_name'], $data['file_ext']);
+
+		if ($file !== $data['file_name'] && ! @rename($path.$data['file_name'], $path.$file))
+		{
+			// Gagal rename: pakai nama bawaan CI (sudah unik berkat increment).
+			return 'uploads/'.$data['file_name'];
+		}
+
+		return 'uploads/'.$file;
+	}
+
+	/**
+	 * Nama file unik dari nama asli upload: slug-judul-YYYYmmddHis-xxxxxx.ext.
+	 *
+	 * @param string $path        Folder tujuan (dengan trailing slash)
+	 * @param string $client_name Nama file asli dari client
+	 * @param string $ext         Ekstensi (boleh dengan atau tanpa titik)
+	 * @return string Nama file lengkap dengan ekstensi
+	 */
+	protected function unique_media_name($path, $client_name, $ext)
+	{
+		$slug = url_title(pathinfo((string) $client_name, PATHINFO_FILENAME), '-', TRUE);
+		$slug = trim(preg_replace('#[^a-z0-9\-]#', '', strtolower($slug)), '-');
+		$slug = substr($slug, 0, 60);
+
+		if ($slug === '')
+		{
+			$slug = 'media';
+		}
+
+		$ext = strtolower(ltrim((string) $ext, '.'));
+
+		for ($i = 0; $i < 20; $i++)
+		{
+			$token = function_exists('random_bytes')
+				? bin2hex(random_bytes(3))
+				: substr(md5(uniqid('', TRUE)), 0, 6);
+
+			$file = $slug.'-'.date('YmdHis').'-'.$token.($ext !== '' ? '.'.$ext : '');
+
+			if ( ! file_exists($path.$file))
+			{
+				return $file;
+			}
+		}
+
+		return $slug.'-'.uniqid().($ext !== '' ? '.'.$ext : '');
 	}
 
 	/**
