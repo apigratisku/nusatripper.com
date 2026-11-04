@@ -31,6 +31,11 @@
         : '<span>EN</span> | <span class="active-lang">ID</span>';
     }
 
+    // Segarkan caption + detail galeri aktif agar ikut bahasa terpilih.
+    if (typeof renderLightboxMedia === 'function' && lightbox.classList.contains('active')) {
+      renderLightboxMedia();
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, currentLang);
     } catch (err) {
@@ -94,35 +99,173 @@
     lightbox.innerHTML =
       '<div class="lightbox-content-box">' +
         '<button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" aria-label="Close preview">&times;</button>' +
+        '<div class="lightbox-head" id="lightboxHead">' +
+          '<span class="lightbox-title" id="lightboxTitle"></span>' +
+          '<span class="lightbox-counter" id="lightboxCounter"></span>' +
+        '</div>' +
         '<div class="lightbox-media-container" id="lightboxMediaContainer"></div>' +
+        '<button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrevBtn" aria-label="Previous"><i class="fa-solid fa-angle-left"></i></button>' +
+        '<button type="button" class="lightbox-nav lightbox-next" id="lightboxNextBtn" aria-label="Next"><i class="fa-solid fa-angle-right"></i></button>' +
         '<div class="lightbox-caption" id="lightboxCaption"></div>' +
+        '<div class="lightbox-thumbs" id="lightboxThumbs"></div>' +
+        '<button type="button" class="lightbox-detail-btn" id="lightboxDetailBtn"><i class="fa-solid fa-circle-info"></i> <span id="lightboxDetailLabel">Detail</span></button>' +
+        '<div class="lightbox-detail-panel" id="lightboxDetailPanel" hidden>' +
+          '<div class="lightbox-detail-meta"><span class="lightbox-detail-cat" id="lightboxDetailCat"></span></div>' +
+          '<p class="lightbox-detail-desc" id="lightboxDetailDesc"></p>' +
+        '</div>' +
       '</div>';
     document.body.appendChild(lightbox);
   }
 
   var mediaContainer = document.getElementById('lightboxMediaContainer');
   var captionEl = document.getElementById('lightboxCaption');
+  var titleEl = document.getElementById('lightboxTitle');
+  var counterEl = document.getElementById('lightboxCounter');
+  var thumbsEl = document.getElementById('lightboxThumbs');
+  var prevBtn = document.getElementById('lightboxPrevBtn');
+  var nextBtn = document.getElementById('lightboxNextBtn');
+  var detailBtn = document.getElementById('lightboxDetailBtn');
+  var detailPanel = document.getElementById('lightboxDetailPanel');
+  var detailLabel = document.getElementById('lightboxDetailLabel');
+  var detailCat = document.getElementById('lightboxDetailCat');
+  var detailDesc = document.getElementById('lightboxDetailDesc');
 
-  function openMediaLightbox(type, src, caption) {
-    if (!src || !mediaContainer) return;
+  // State galeri aktif: daftar media + indeks saat ini.
+  var galleryItems = [];
+  var galleryIndex = 0;
+
+  function renderLightboxMedia() {
+    if (!mediaContainer) return;
+
+    var item = galleryItems[galleryIndex];
+    if (!item) {
+      mediaContainer.innerHTML = '';
+      return;
+    }
 
     mediaContainer.innerHTML = '';
 
-    if (type === 'video') {
+    if (item.type === 'video') {
       var video = document.createElement('video');
-      video.src = src;
+      video.src = item.src;
       video.controls = true;
       video.autoplay = true;
       video.playsInline = true;
       mediaContainer.appendChild(video);
     } else {
       var img = document.createElement('img');
-      img.src = src;
-      img.alt = caption || '';
+      img.src = item.src;
+      img.alt = item.caption || '';
       mediaContainer.appendChild(img);
     }
 
-    if (captionEl) captionEl.textContent = caption || '';
+    var caption = currentLang === 'id'
+      ? (item.caption_id || item.caption_en || '')
+      : (item.caption_en || item.caption_id || '');
+
+    if (captionEl) captionEl.textContent = caption;
+
+    // Panel detail: kategori + deskripsi media aktif.
+    if (detailCat) detailCat.textContent = currentLang === 'id'
+      ? (item.category_id || item.category_en || '')
+      : (item.category_en || item.category_id || '');
+
+    if (detailDesc) detailDesc.textContent = currentLang === 'id'
+      ? (item.description_id || item.description_en || '')
+      : (item.description_en || item.description_id || '');
+
+    var hasDetail = !!(
+      (currentLang === 'id'
+        ? (item.description_id || item.description_en || '')
+        : (item.description_en || item.description_id || '')) ||
+      (currentLang === 'id'
+        ? (item.category_id || item.category_en || '')
+        : (item.category_en || item.category_id || ''))
+    );
+
+    if (detailBtn) detailBtn.style.display = hasDetail ? 'inline-flex' : 'none';
+
+    // Kalau item baru tidak punya detail, tutup panel yang masih terbuka.
+    if (!hasDetail && detailPanel) detailPanel.hidden = true;
+
+    if (counterEl) {
+      counterEl.textContent = galleryItems.length > 1
+        ? (galleryIndex + 1) + ' / ' + galleryItems.length
+        : '';
+    }
+
+    var multi = galleryItems.length > 1;
+    if (prevBtn) prevBtn.style.display = multi ? 'flex' : 'none';
+    if (nextBtn) nextBtn.style.display = multi ? 'flex' : 'none';
+
+    if (thumbsEl) {
+      thumbsEl.innerHTML = '';
+      if (multi) {
+        galleryItems.forEach(function (thumb, idx) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'lightbox-thumb' + (idx === galleryIndex ? ' active' : '');
+          btn.setAttribute('aria-label', 'Media ' + (idx + 1));
+
+          if (thumb.type === 'video') {
+            btn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
+          } else {
+            var thumbImg = document.createElement('img');
+            thumbImg.src = thumb.src;
+            thumbImg.alt = '';
+            thumbImg.loading = 'lazy';
+            btn.appendChild(thumbImg);
+          }
+
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            galleryIndex = idx;
+            renderLightboxMedia();
+          });
+
+          thumbsEl.appendChild(btn);
+        });
+      }
+    }
+  }
+
+  function showLightboxAt(index) {
+    if (!galleryItems.length) return;
+
+    galleryIndex = (index + galleryItems.length) % galleryItems.length;
+    renderLightboxMedia();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openMediaLightbox(type, src, caption) {
+    if (!src) return;
+
+    galleryItems = [{ type: type, src: src, caption_en: caption || '', caption_id: '' }];
+    galleryIndex = 0;
+
+    if (titleEl) titleEl.textContent = '';
+
+    renderLightboxMedia();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openPackageGallery(packageId, title, startIndex) {
+    var galleries = window.PACKAGE_GALLERIES || {};
+    var items = galleries[packageId] || [];
+
+    if (!items.length) return;
+
+    galleryItems = items;
+    galleryIndex = (typeof startIndex === 'number' && startIndex >= 0 && startIndex < items.length)
+      ? startIndex
+      : 0;
+
+    if (titleEl) titleEl.textContent = title || '';
+    if (detailPanel) detailPanel.hidden = true;
+
+    renderLightboxMedia();
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
@@ -132,6 +275,12 @@
     lightbox.classList.remove('active');
     if (mediaContainer) mediaContainer.innerHTML = '';
     if (captionEl) captionEl.textContent = '';
+    if (counterEl) counterEl.textContent = '';
+    if (titleEl) titleEl.textContent = '';
+    if (thumbsEl) thumbsEl.innerHTML = '';
+    if (detailPanel) detailPanel.hidden = true;
+    if (detailBtn) detailBtn.classList.remove('active');
+    galleryItems = [];
 
     // Jangan buka scroll body kalau drawer sedang terbuka
     if (!isMobileMenuOpen()) document.body.style.overflow = '';
@@ -148,14 +297,78 @@
     lightboxCloseBtn.addEventListener('click', closeMediaLightbox);
   }
 
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showLightboxAt(galleryIndex - 1);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showLightboxAt(galleryIndex + 1);
+    });
+  }
+
+  // Tombol "Detail" di dalam lightbox: tampilkan / sembunyikan panel detail media.
+  if (detailBtn) {
+    detailBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!detailPanel) return;
+
+      detailPanel.hidden = !detailPanel.hidden;
+
+      if (!detailPanel.hidden) {
+        detailBtn.classList.add('active');
+      } else {
+        detailBtn.classList.remove('active');
+      }
+    });
+  }
+
   // Delegasi klik: pakai metadata data-media/data-src bila ada,
   // jika tidak fallback ke <video>/<img> di dalam elemen media.
   document.addEventListener('click', function (e) {
+    // Klik satu thumbnail galeri di kartu paket: buka modal langsung di item itu.
+    var thumb = e.target.closest('.card-gallery [data-gallery-index]');
+
+    if (thumb) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var strip = thumb.closest('.card-gallery');
+
+      if (strip) {
+        openPackageGallery(
+          parseInt(strip.getAttribute('data-gallery-trigger'), 10) || 0,
+          strip.getAttribute('data-gallery-title'),
+          parseInt(thumb.getAttribute('data-gallery-index'), 10) || 0
+        );
+      }
+
+      return;
+    }
+
+    // Klik gambar paket tour (atau tombol Detail Galeri): buka seluruh galeri paket tersebut.
+    var galleryTrigger = e.target.closest('[data-gallery-trigger]');
+
+    if (galleryTrigger) {
+      e.preventDefault();
+      openPackageGallery(
+        parseInt(galleryTrigger.getAttribute('data-gallery-trigger'), 10) || 0,
+        galleryTrigger.getAttribute('data-gallery-title')
+      );
+      return;
+    }
+
     var trigger = e.target.closest('[data-src], .gallery-item, .card-img-wrap, .featured-img-col, .polaroid-card');
     if (!trigger) return;
 
-    // Jangan buka lightbox dari elemen yang bukan media (mis. tombol CTA di kartu)
-    if (e.target.closest('a, button:not(.lightbox-close-btn)')) return;
+    // Jangan buka lightbox dari elemen yang bukan media (mis. tombol CTA di kartu).
+    // Kartu galeri (.card-gallery) sudah ditangani di atas, jadi tombol di
+    // dalamnya tetap membuka modal.
+    if (e.target.closest('a, button:not(.lightbox-close-btn)') && !e.target.closest('.card-gallery')) return;
 
     var src = trigger.getAttribute('data-src');
     var type = trigger.getAttribute('data-media');
@@ -183,6 +396,37 @@
     }
 
     openMediaLightbox(type === 'video' ? 'video' : 'image', src, caption);
+  });
+
+  // Keyboard: navigasi galeri saat lightbox terbuka
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (lightbox.classList.contains('active')) {
+        closeMediaLightbox();
+      }
+      return;
+    }
+
+    if (!lightbox.classList.contains('active') || galleryItems.length < 2) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      showLightboxAt(galleryIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      showLightboxAt(galleryIndex + 1);
+    }
+  });
+
+  // Aksesibilitas: elemen galeri dengan role="button" bisa diaktifkan Enter/Space.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+
+    var target = e.target.closest('.card-gallery');
+    if (!target) return;
+
+    e.preventDefault();
+    target.click();
   });
 
   /* -----------------------------------------------------------------

@@ -76,7 +76,15 @@ $rows    = isset($rows) ? $rows : array();
 											<span class="text-muted">&mdash;</span>
 										<?php endif; ?>
 
-									<?php elseif ($type === 'status'): ?>
+									<?php elseif ($type === 'package'): ?>
+									<?php $pkg_id = (int) $row[$name]; ?>
+									<?php if ($pkg_id > 0): ?>
+										<span class="badge badge-teal">Paket #<?= $pkg_id ?></span>
+									<?php else: ?>
+										<span class="badge badge-navy">Galeri Umum</span>
+									<?php endif; ?>
+
+								<?php elseif ($type === 'status'): ?>
 										<?php if ( ! empty($row[$name])): ?>
 											<span class="badge badge-active"><i class="fa-solid fa-eye"></i> Tampil</span>
 										<?php else: ?>

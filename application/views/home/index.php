@@ -10,6 +10,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @var array $site         setting situs: key => ['en' => ..., 'id' => ...]
  * @var array $packages
  * @var array $gallery
+ * @var array $package_gallery  galeri per paket: package_id => array item
  * @var array $why_points
  * @var array $testimonials
  * @var array $faqs
@@ -39,6 +40,36 @@ $photo = function ($path) {
 	return media_url($path);
 };
 
+// Daftar media (foto/video) satu paket untuk lightbox galeri.
+$gallery_media = function (array $items) use ($photo) {
+	$out = array();
+
+	foreach ($items as $item)
+	{
+		$is_video = ($item['media_type'] === 'video' && trim((string) $item['video']) !== '');
+		$src      = $is_video ? $photo($item['video']) : webp_url($item['image']);
+
+		if ($src === '')
+		{
+			continue;
+		}
+
+		$out[] = array(
+			'type'            => $is_video ? 'video' : 'image',
+			'src'             => $src,
+			'thumb'           => webp_url($item['image']),
+			'caption_en'      => (string) $item['title_en'],
+			'caption_id'      => (string) $item['title_id'],
+			'category_en'     => (string) $item['category_en'],
+			'category_id'     => (string) $item['category_id'],
+			'description_en'  => (string) $item['description_en'],
+			'description_id'  => (string) $item['description_id'],
+		);
+	}
+
+	return $out;
+};
+
 $wa_number = preg_replace('/[^0-9]/', '', $val('wa_number'));
 $wa_base   = wa_link($wa_number);
 
@@ -54,6 +85,20 @@ $categories = array(
 $badge_class = array('hot' => 'badge-hot', 'popular' => 'badge-popular');
 $perk_icons  = array('fa-camera', 'fa-utensils', 'fa-life-ring', 'fa-van-shuttle');
 $trust_icons = array('fa-certificate', 'fa-shield-halved', 'fa-bolt');
+
+$package_gallery = isset($package_gallery) && is_array($package_gallery) ? $package_gallery : array();
+
+// Bentuk JSON galeri per paket: package_id => daftar media {type, src, caption_en, caption_id}.
+$package_galleries_json = array();
+foreach ($package_gallery as $gal_pkg_id => $gal_items)
+{
+	$gal_media = $gallery_media($gal_items);
+
+	if ( ! empty($gal_media))
+	{
+		$package_galleries_json[(int) $gal_pkg_id] = $gal_media;
+	}
+}
 
 // Link footer "Label|URL" per baris, dipasangkan EN/ID berdasarkan urutan.
 $parse_links = function ($en_key, $id_key) use ($val) {
@@ -265,24 +310,38 @@ $brand_sub   = $val('brand_subtitle');
 			</div>
 
 			<div class="packages-grid" id="packagesGrid">
-				<?php foreach ($packages as $package): ?>
-					<?php
-					$category = isset($package['category']) ? $package['category'] : 'diving';
-					$cat      = isset($categories[$category]) ? $categories[$category] : $categories['diving'];
-					$badge    = trim((string) $package['badge_en']);
-					$style    = isset($badge_class[$package['badge_style']]) ? $badge_class[$package['badge_style']] : 'badge-popular';
-					$inclusions = lines_pair($package['inclusions_en'], $package['inclusions_id']);
-					?>
-					<article class="package-card" id="package-<?= (int) $package['id'] ?>" data-category="<?= html_escape($category) ?>">
-						<div class="card-img-wrap">
-							<?= img_tag($package['image'], $package['title_en'], 600, 400) ?>
-							<?php if ($badge !== ''): ?>
-							<span class="card-badge <?= $style ?>" <?= i18n_attr(i18n_pair($package, 'badge')) ?>><?= i18n_text(i18n_pair($package, 'badge')) ?></span>
-							<?php endif; ?>
-							<?php if (trim((string) $package['duration_en']) !== ''): ?>
-							<span class="card-duration"><i class="fa-regular fa-clock"></i> <span <?= i18n_attr(i18n_pair($package, 'duration')) ?>><?= i18n_text(i18n_pair($package, 'duration')) ?></span></span>
-							<?php endif; ?>
-						</div>
+			<?php foreach ($packages as $package): ?>
+				<?php
+				$category = isset($package['category']) ? $package['category'] : 'diving';
+				$cat      = isset($categories[$category]) ? $categories[$category] : $categories['diving'];
+				$badge    = trim((string) $package['badge_en']);
+				$style    = isset($badge_class[$package['badge_style']]) ? $badge_class[$package['badge_style']] : 'badge-popular';
+				$inclusions = lines_pair($package['inclusions_en'], $package['inclusions_id']);
+				$pkg_id   = (int) $package['id'];
+				$gal_items = isset($package_gallery[$pkg_id]) ? $package_gallery[$pkg_id] : array();
+				$gal_count = count($gal_items);
+				?>
+				<article class="package-card" id="package-<?= $pkg_id ?>" data-category="<?= html_escape($category) ?>">
+					<div class="card-img-wrap" role="button" tabindex="0" aria-label="Lihat galeri <?= html_escape($package['title_en']) ?>"
+						data-gallery-trigger="<?= $pkg_id ?>"
+						data-gallery-title="<?= html_escape($package['title_en']) ?>">
+						<?= img_tag($package['image'], $package['title_en'], 600, 400) ?>
+						<?php if ($badge !== ''): ?>
+						<span class="card-badge <?= $style ?>" <?= i18n_attr(i18n_pair($package, 'badge')) ?>><?= i18n_text(i18n_pair($package, 'badge')) ?></span>
+						<?php endif; ?>
+						<?php if (trim((string) $package['duration_en']) !== ''): ?>
+						<span class="card-duration"><i class="fa-regular fa-clock"></i> <span <?= i18n_attr(i18n_pair($package, 'duration')) ?>><?= i18n_text(i18n_pair($package, 'duration')) ?></span></span>
+						<?php endif; ?>
+						<?php if ($gal_count > 0): ?>
+						<span class="card-gallery-hint" <?= i18n_attr(array(
+							'en' => $gal_count.' '.($gal_count > 1 ? 'photos' : 'photo'),
+							'id' => $gal_count.' '.($gal_count > 1 ? 'foto' : 'foto'),
+						)) ?>><i class="fa-solid fa-images"></i> <?= i18n_text(array(
+							'en' => $gal_count.' '.($gal_count > 1 ? 'photos' : 'photo'),
+							'id' => $gal_count.' foto',
+						)) ?></span>
+						<?php endif; ?>
+					</div>
 						<div class="card-content">
 							<div class="card-meta">
 								<span class="category-chip"><i class="<?= $cat['icon'] ?>"></i> <span <?= i18n_attr($S($cat['label'])) ?>><?= i18n_text($S($cat['label'])) ?></span></span>
@@ -292,12 +351,52 @@ $brand_sub   = $val('brand_subtitle');
 							<p class="card-desc" <?= i18n_attr(i18n_pair($package, 'description')) ?>><?= i18n_text(i18n_pair($package, 'description')) ?></p>
 
 							<?php if ( ! empty($inclusions)): ?>
-							<ul class="card-inclusions">
-								<?php foreach ($inclusions as $line): ?>
-								<li><i class="fa-solid fa-check"></i> <span <?= i18n_attr($line) ?>><?= i18n_text($line) ?></span></li>
-								<?php endforeach; ?>
-							</ul>
-							<?php endif; ?>
+						<ul class="card-inclusions">
+							<?php foreach ($inclusions as $line): ?>
+							<li><i class="fa-solid fa-check"></i> <span <?= i18n_attr($line) ?>><?= i18n_text($line) ?></span></li>
+							<?php endforeach; ?>
+						</ul>
+						<?php endif; ?>
+
+						<?php if ($gal_count > 0): ?>
+						<div class="card-gallery" data-gallery-trigger="<?= $pkg_id ?>"
+							data-gallery-title="<?= html_escape($package['title_en']) ?>"
+							role="button" tabindex="0" aria-label="Lihat galeri <?= html_escape($package['title_en']) ?>">
+							<?php $gal_preview = array_slice($gal_items, 0, 3); ?>
+							<?php foreach ($gal_preview as $gal_i => $gal_item): ?>
+								<?php
+								$gal_is_video = ($gal_item['media_type'] === 'video' && trim((string) $gal_item['video']) !== '');
+							$gal_cap      = i18n_pair($gal_item, 'title');
+								?>
+							<span class="card-gal-thumb<?= $gal_i === 2 && $gal_count > 3 ? ' has-more' : '' ?>" data-gallery-index="<?= $gal_i ?>">
+								<img src="<?= html_escape(webp_url($gal_item['image'])) ?>" alt="<?= html_escape($gal_cap['en']) ?>" loading="lazy" decoding="async">
+								<?php if ($gal_is_video): ?>
+								<i class="fa-solid fa-circle-play card-gal-play"></i>
+								<?php endif; ?>
+								<?php if ($gal_i === 2 && $gal_count > 3): ?>
+								<span class="card-gal-more" <?= i18n_attr(array(
+									'en' => '+'.($gal_count - 3).' more',
+									'id' => '+'.($gal_count - 3).' lagi',
+								)) ?>><?= i18n_text(array(
+									'en' => '+'.($gal_count - 3).' more',
+									'id' => '+'.($gal_count - 3).' lagi',
+								)) ?></span>
+								<?php endif; ?>
+							</span>
+							<?php endforeach; ?>
+							<button type="button" class="card-gal-btn">
+								<i class="fa-solid fa-images"></i>
+								<span <?= i18n_attr(array(
+									'en' => 'Detail Galeri',
+									'id' => 'Detail Galeri',
+								)) ?>><?= i18n_text(array(
+									'en' => 'Detail Galeri',
+									'id' => 'Detail Galeri',
+								)) ?></span>
+								<span class="card-gal-count">(<?= $gal_count ?>)</span>
+							</button>
+						</div>
+						<?php endif; ?>
 
 							<div class="card-footer">
 								<div class="price-wrap">
@@ -539,5 +638,9 @@ $brand_sub   = $val('brand_subtitle');
 	<?php endif; ?>
 
 	<script src="<?= base_url('assets/js/main.js') ?>" defer></script>
+	<script>
+	// Data galeri per paket untuk modal lightbox (diisi server-side).
+	window.PACKAGE_GALLERIES = <?= json_encode($package_galleries_json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+	</script>
 </body>
 </html>

@@ -36,10 +36,22 @@ class Home extends MY_Controller
 			$packages = $this->filter_packages($packages, $search);
 		}
 
-		$gallery      = $this->gallery_model->active();
+		$gallery      = $this->gallery_model->general();
 		$why_points   = $this->why_model->active();
 		$testimonials = $this->testimonial_model->active();
 		$faqs         = $this->faq_model->active();
+
+		// Galeri khusus per paket, diindeks oleh package_id.
+		$package_gallery = array();
+		foreach ($packages as $package)
+		{
+			$items = $this->gallery_model->by_package($package['id']);
+
+			if ( ! empty($items))
+			{
+				$package_gallery[(int) $package['id']] = $items;
+			}
+		}
 
 		$this->build_seo($search, $packages, $faqs);
 
@@ -50,13 +62,14 @@ class Home extends MY_Controller
 		}
 
 		$this->load->view('home/index', array(
-			'packages'     => $packages,
-			'gallery'      => $gallery,
-			'why_points'   => $why_points,
-			'testimonials' => $testimonials,
-			'faqs'         => $faqs,
-			'search_query' => $search,
-			'seo'          => $this->seo,
+			'packages'        => $packages,
+			'gallery'         => $gallery,
+			'package_gallery' => $package_gallery,
+			'why_points'      => $why_points,
+			'testimonials'    => $testimonials,
+			'faqs'            => $faqs,
+			'search_query'    => $search,
+			'seo'             => $this->seo,
 		));
 	}
 

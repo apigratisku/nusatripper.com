@@ -11,9 +11,44 @@ class Gallery extends Admin_Resource
 	protected $singular   = 'Item Galeri';
 	protected $route      = 'admin/gallery';
 
+	/**
+	 * Daftar paket untuk dropdown pemilik galeri.
+	 *
+	 * @return array package_id => nama paket
+	 */
+	protected function package_options()
+	{
+		$this->load->model('package_model');
+
+		$options = array(0 => '— Galeri Umum (landing page) —');
+
+		foreach ($this->package_model->all() as $package)
+		{
+			$label = isset($package['title_en']) ? trim((string) $package['title_en']) : '';
+
+			if ($label === '')
+			{
+				$label = 'Paket #'.(int) $package['id'];
+			}
+
+			$options[(int) $package['id']] = $label;
+		}
+
+		return $options;
+	}
+
 	protected function fields()
 	{
 		return array(
+			array(
+				'name'    => 'package_id',
+				'label'   => 'Paket Terkait',
+				'type'    => 'select_int',
+				'options' => $this->package_options(),
+				'default' => 0,
+				'width'   => 'full',
+				'hint'    => 'Pilih "Galeri Umum" untuk section Galeri di landing page, atau pilih paket agar foto/video tampil saat gambar paket diklik.',
+			),
 			array(
 				'name'    => 'media_type',
 				'label'   => 'Tipe Media',
@@ -69,6 +104,7 @@ class Gallery extends Admin_Resource
 		return array(
 			array('name' => 'image', 'label' => 'Media', 'type' => 'image'),
 			array('name' => 'title', 'label' => 'Judul', 'type' => 'bilingual'),
+			array('name' => 'package_id', 'label' => 'Paket', 'type' => 'package'),
 			array('name' => 'media_type', 'label' => 'Tipe', 'type' => 'text'),
 			array('name' => 'size', 'label' => 'Ukuran', 'type' => 'text'),
 			array('name' => 'sort_order', 'label' => 'Urutan', 'type' => 'order'),

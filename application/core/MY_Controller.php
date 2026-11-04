@@ -630,6 +630,12 @@ class Admin_Resource extends Admin_Controller
 					$data[$name] = in_array($value, $options, TRUE) ? $value : (isset($field['default']) ? $field['default'] : '');
 					break;
 
+				case 'select_int':
+					$value   = (int) $this->post_text($name, 0);
+					$options = isset($field['options']) ? array_keys($field['options']) : array();
+					$data[$name] = in_array($value, $options, TRUE) ? $value : (isset($field['default']) ? (int) $field['default'] : 0);
+					break;
+
 				default:
 					$data[$name] = $this->post_text($name);
 			}

@@ -96,7 +96,15 @@ $is_media = function ($type) {
 							<?php endfor; ?>
 						</select>
 
-					<?php elseif ($type === 'select'): ?>
+					<?php elseif ($type === 'select_int'): ?>
+					<?php $options = isset($field['options']) ? $field['options'] : array(); ?>
+					<select class="select" id="f-<?= html_escape($name) ?>" name="<?= html_escape($name) ?>">
+						<?php foreach ($options as $opt_value => $opt_label): ?>
+							<option value="<?= (int) $opt_value ?>"<?= (int) $val === (int) $opt_value ? ' selected' : '' ?>><?= html_escape($opt_label) ?></option>
+						<?php endforeach; ?>
+					</select>
+
+				<?php elseif ($type === 'select'): ?>
 						<?php $options = isset($field['options']) ? $field['options'] : array(); ?>
 						<select class="select" id="f-<?= html_escape($name) ?>" name="<?= html_escape($name) ?>">
 							<?php foreach ($options as $opt_value => $opt_label): ?>

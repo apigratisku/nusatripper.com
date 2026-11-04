@@ -1135,6 +1135,330 @@ button {
   font-weight: 500;
   letter-spacing: 0.3px;
 }
+
+/* Judul paket + counter galeri */
+.lightbox-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.lightbox-title {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.lightbox-counter {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Tombol navigasi galeri */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lightbox-prev {
+  left: 18px;
+}
+
+.lightbox-next {
+  right: 18px;
+}
+
+/* Strip thumbnail */
+.lightbox-thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-bottom: 4px;
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.lightbox-thumb {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+  opacity: 0.7;
+}
+
+.lightbox-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lightbox-thumb:hover {
+  opacity: 1;
+}
+
+.lightbox-thumb.active {
+  border-color: var(--accent-gold);
+  opacity: 1;
+}
+
+/* Indikator jumlah galeri pada kartu paket */
+.card-gallery-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(10, 37, 64, 0.85);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-gallery-hint i {
+  color: var(--accent-gold);
+}
+
+@media (max-width: 640px) {
+  .lightbox-nav {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .lightbox-prev {
+    left: 8px;
+  }
+
+  .lightbox-next {
+    right: 8px;
+  }
+
+  .lightbox-head {
+    margin-bottom: 8px;
+  }
+
+  .lightbox-title {
+    font-size: 0.95rem;
+  }
+
+  .lightbox-thumb {
+    width: 52px;
+    height: 40px;
+  }
+}
+
+/* Tombol "Detail" + panel detail di dalam lightbox */
+.lightbox-detail-btn {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 14px auto 0;
+  padding: 8px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lightbox-detail-btn:hover,
+.lightbox-detail-btn.active {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: var(--primary-navy);
+}
+
+.lightbox-detail-panel {
+  width: 100%;
+  max-width: 640px;
+  margin: 12px auto 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(10, 37, 64, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: left;
+}
+
+.lightbox-detail-panel[hidden] {
+  display: none;
+}
+
+.lightbox-detail-cat {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--accent-gold);
+  color: var(--primary-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.lightbox-detail-desc {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 10px 0 0;
+  white-space: pre-line;
+}
+
+/* Strip galeri di kartu paket (di bawah deskripsi) */
+.card-gallery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-color);
+  cursor: pointer;
+}
+
+.card-gallery:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.card-gal-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: zoom-in;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card-gal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-gallery:hover .card-gal-thumb {
+  border-color: var(--accent-gold);
+}
+
+.card-gal-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.card-gal-more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 37, 64, 0.75);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.card-gal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 7px 14px;
+  border: 1px solid var(--accent-gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary-navy);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.card-gallery:hover .card-gal-btn {
+  background: var(--accent-gold);
+  color: #fff;
+}
+
+.card-gal-btn i {
+  font-size: 0.9rem;
+}
+
+.card-gal-count {
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+  .card-gal-thumb {
+    width: 48px;
+    height: 40px;
+  }
+
+  .card-gal-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+}
 .why-us-section {
   background: linear-gradient(135deg, var(--primary-navy-dark) 0%, var(--primary-navy) 100%);
   padding: 56px 0;

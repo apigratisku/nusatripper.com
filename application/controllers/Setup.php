@@ -174,6 +174,7 @@ class Setup extends CI_Controller
 	{
 		$this->dbforge->add_field(array(
 			'id'             => array('type' => 'INTEGER', 'constraint' => 11, 'auto_increment' => TRUE),
+			'package_id'     => array('type' => 'INTEGER', 'default' => 0),
 			'media_type'     => array('type' => 'TEXT'),
 			'size'           => array('type' => 'TEXT'),
 			'image'          => array('type' => 'TEXT'),
