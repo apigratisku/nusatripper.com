@@ -11,13 +11,45 @@ class Gallery extends Admin_Resource
 	protected $singular   = 'Item Galeri';
 	protected $route      = 'admin/gallery';
 
+	/** @var array|null cache daftar paket untuk dropdown */
+	protected $package_options_cache = NULL;
+
+	/**
+	 * Baris daftar ditambah label paket supaya tabel admin bisa menampilkan
+	 * nama paket, bukan "Paket #12".
+	 *
+	 * @param array $rows
+	 * @return array
+	 */
+	protected function decorate_rows(array $rows)
+	{
+		$names = $this->package_options();
+
+		foreach ($rows as &$row)
+		{
+			$pkg_id = isset($row['package_id']) ? (int) $row['package_id'] : 0;
+			$row['package_label'] = $pkg_id > 0 && isset($names[$pkg_id]) ? $names[$pkg_id] : 'Galeri Umum';
+		}
+		unset($row);
+
+		return $rows;
+	}
+
 	/**
 	 * Daftar paket untuk dropdown pemilik galeri.
+	 *
+	 * Dipanggil sekali lalu di-cache ke properti karena list_columns() juga
+	 * membutuhkannya dan dipakai berkali-kali per render.
 	 *
 	 * @return array package_id => nama paket
 	 */
 	protected function package_options()
 	{
+		if (isset($this->package_options_cache))
+		{
+			return $this->package_options_cache;
+		}
+
 		$this->load->model('package_model');
 
 		$options = array(0 => '— Galeri Umum (landing page) —');
@@ -34,7 +66,7 @@ class Gallery extends Admin_Resource
 			$options[(int) $package['id']] = $label;
 		}
 
-		return $options;
+		return $this->package_options_cache = $options;
 	}
 
 	protected function fields()
@@ -104,7 +136,7 @@ class Gallery extends Admin_Resource
 		return array(
 			array('name' => 'image', 'label' => 'Media', 'type' => 'image'),
 			array('name' => 'title', 'label' => 'Judul', 'type' => 'bilingual'),
-			array('name' => 'package_id', 'label' => 'Paket', 'type' => 'package'),
+			array('name' => 'package_label', 'label' => 'Paket', 'type' => 'package'),
 			array('name' => 'media_type', 'label' => 'Tipe', 'type' => 'text'),
 			array('name' => 'size', 'label' => 'Ukuran', 'type' => 'text'),
 			array('name' => 'sort_order', 'label' => 'Urutan', 'type' => 'order'),

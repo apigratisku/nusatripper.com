@@ -20,7 +20,31 @@ class MY_Controller extends CI_Controller
 			$this->site = $this->setting_model->pairs();
 		}
 
+		$this->ensure_schema();
+
 		$this->load->vars(array('site' => $this->site));
+	}
+
+	/**
+	 * Tambal kolom yang belum ada pada instalasi lama.
+	 *
+	 * Instalasi yang sudah berjalan tidak menjalankan ulang /setup, jadi kolom
+	 * yang ditambahkan setelah rilis pertama dibuat otomatis di sini (idempoten).
+	 *
+	 * @return void
+	 */
+	protected function ensure_schema()
+	{
+		if ( ! $this->db->table_exists('gallery') || $this->db->field_exists('package_id', 'gallery'))
+		{
+			return;
+		}
+
+		$this->load->dbforge();
+
+		$this->dbforge->add_column('gallery', array(
+			'package_id' => array('type' => 'INTEGER', 'default' => 0),
+		));
 	}
 
 	/**
@@ -411,8 +435,15 @@ class Admin_Resource extends Admin_Controller
 	{
 		$this->require_capability('content.view');
 
+		$rows = $this->model->all();
+
+		if (method_exists($this, 'decorate_rows'))
+		{
+			$rows = $this->decorate_rows($rows);
+		}
+
 		$data = array(
-			'rows'    => $this->model->all(),
+			'rows'    => $rows,
 			'columns' => $this->list_columns(),
 		);
 
@@ -544,6 +575,19 @@ class Admin_Resource extends Admin_Controller
 	}
 
 	/**
+	 * Apakah kolom ada di tabel resource ini?
+	 *
+	 * @param string $column
+	 * @return bool
+	 */
+	protected function column_exists($column)
+	{
+		$table = $this->model->table_name();
+
+		return $table !== '' && $this->db->field_exists($column, $table);
+	}
+
+	/**
 	 * Nilai default form tambah.
 	 *
 	 * @return array
@@ -556,6 +600,14 @@ class Admin_Resource extends Admin_Controller
 		{
 			$type = isset($field['type']) ? $field['type'] : 'text';
 			$name = $field['name'];
+
+			// Kolom yang belum ada di tabel (instalasi lama) dilewati supaya
+			// form tidak menampilkan isian yang tak bisa disimpan.
+			if ( ! $this->column_exists($name))
+			{
+				continue;
+			}
+
 			$default = isset($field['default']) ? $field['default'] : '';
 
 			if ($type === 'bilingual_text' || $type === 'bilingual_textarea')
@@ -585,6 +637,13 @@ class Admin_Resource extends Admin_Controller
 		{
 			$name = $field['name'];
 			$type = isset($field['type']) ? $field['type'] : 'text';
+
+			// Kolom yang belum ada di tabel (instalasi lama) dilewati supaya
+			// query tidak gagal; ensure_schema() membuatnya otomatis.
+			if ( ! $this->column_exists($name))
+			{
+				continue;
+			}
 
 			switch ($type)
 			{

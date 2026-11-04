@@ -77,8 +77,13 @@ $rows    = isset($rows) ? $rows : array();
 										<?php endif; ?>
 
 									<?php elseif ($type === 'package'): ?>
-									<?php $pkg_id = (int) $row[$name]; ?>
-									<?php if ($pkg_id > 0): ?>
+									<?php
+									$pkg_label = isset($row[$name]) ? trim((string) $row[$name]) : '';
+									$pkg_id    = isset($row['package_id']) ? (int) $row['package_id'] : 0;
+									?>
+									<?php if ($pkg_label !== ''): ?>
+										<span class="badge badge-teal"><?= html_escape($pkg_label) ?></span>
+									<?php elseif ($pkg_id > 0): ?>
 										<span class="badge badge-teal">Paket #<?= $pkg_id ?></span>
 									<?php else: ?>
 										<span class="badge badge-navy">Galeri Umum</span>

@@ -13,6 +13,16 @@ class Content_model extends CI_Model
 	protected $order_column = 'sort_order';
 
 	/**
+	 * Nama tabel model (untuk pengecekan kolom).
+	 *
+	 * @return string
+	 */
+	public function table_name()
+	{
+		return $this->table;
+	}
+
+	/**
 	 * Semua baris (termasuk yang nonaktif).
 	 *
 	 * @return array

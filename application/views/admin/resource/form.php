@@ -98,9 +98,16 @@ $is_media = function ($type) {
 
 					<?php elseif ($type === 'select_int'): ?>
 					<?php $options = isset($field['options']) ? $field['options'] : array(); ?>
+					<?php
+					// Kalau row tidak punya kolom (instalasi lama), pakai default
+					// field supaya select tetap memilih opsi yang benar.
+					$sel_val = isset($row[$name])
+						? (int) $val
+						: (isset($field['default']) ? (int) $field['default'] : 0);
+					?>
 					<select class="select" id="f-<?= html_escape($name) ?>" name="<?= html_escape($name) ?>">
 						<?php foreach ($options as $opt_value => $opt_label): ?>
-							<option value="<?= (int) $opt_value ?>"<?= (int) $val === (int) $opt_value ? ' selected' : '' ?>><?= html_escape($opt_label) ?></option>
+							<option value="<?= (int) $opt_value ?>"<?= $sel_val === (int) $opt_value ? ' selected' : '' ?>><?= html_escape($opt_label) ?></option>
 						<?php endforeach; ?>
 					</select>
 
