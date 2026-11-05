@@ -44,16 +44,17 @@ $roles = isset($roles) ? $roles : array();
 				<tbody>
 					<?php foreach ($rows as $row): ?>
 						<?php
-						$role_key   = isset($row['role']) && isset($roles[$row['role']]) ? $row['role'] : 'editor';
-						$role       = $roles[$role_key];
-						$is_active  = ! empty($row['is_active']);
-						$is_self    = (int) $row['id'] === (int) $admin['id'];
+						$role_key     = isset($row['role']) && isset($roles[$row['role']]) ? $row['role'] : 'editor';
+						$role         = $roles[$role_key];
+						$is_active    = ! empty($row['is_active']);
+						$is_self      = (int) $row['id'] === (int) $admin['id'];
+						$is_protected = User_model::is_protected($row);
 						?>
 						<tr>
 							<td data-label="Nama">
 								<span class="cell-title"><?= html_escape($row['name']) ?></span>
 								<span class="cell-sub">
-									<?= html_escape($row['username']) ?><?= $is_self ? ' &middot; Anda' : '' ?>
+									<?= html_escape($row['username']) ?><?= $is_self ? ' &middot; Anda' : '' ?><?= $is_protected ? ' &middot; <strong style="color:var(--primary,#2563eb)">Permanen</strong>' : '' ?>
 								</span>
 							</td>
 							<td data-label="Email">
@@ -84,7 +85,7 @@ $roles = isset($roles) ? $roles : array();
 									<i class="fa-solid fa-pen"></i> Edit
 								</a>
 
-								<?php if ( ! $is_self): ?>
+								<?php if ( ! $is_self && ! $is_protected): ?>
 									<?= form_open('admin/users/toggle/'.$row['id'], array('style' => 'display:inline-block')) ?>
 										<button type="submit" class="btn btn-ghost btn-sm" title="Ubah status akun">
 											<i class="fa-solid <?= $is_active ? 'fa-toggle-on' : 'fa-toggle-off' ?>"></i>
@@ -97,6 +98,8 @@ $roles = isset($roles) ? $roles : array();
 											<i class="fa-solid fa-trash"></i> Hapus
 										</button>
 									<?= form_close() ?>
+								<?php elseif ($is_protected && ! $is_self): ?>
+									<span class="badge badge-navy" title="Akun permanen dilindungi sistem"><i class="fa-solid fa-shield"></i> Terlindungi</span>
 								<?php endif; ?>
 							</td>
 						</tr>

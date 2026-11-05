@@ -5,6 +5,7 @@
  */
 $admin_name = isset($admin['name']) ? $admin['name'] : '';
 $admin_user = isset($admin['username']) ? $admin['username'] : '';
+$is_protected = User_model::is_protected($admin_user);
 ?>
 
 <div class="page-head">
@@ -34,7 +35,13 @@ $admin_user = isset($admin['username']) ? $admin['username'] : '';
 				</div>
 				<div class="form-field half">
 					<label class="field-label" for="acc-username">Username</label>
-					<input type="text" class="input" id="acc-username" name="username" value="<?= html_escape(set_value('username', $admin_user)) ?>" autocapitalize="none" spellcheck="false" required>
+					<?php if ($is_protected): ?>
+						<input type="hidden" name="username" value="<?= html_escape($admin_user) ?>">
+						<input type="text" class="input" id="acc-username" value="<?= html_escape($admin_user) ?>" disabled>
+						<span class="hint">Akun permanen (username tidak dapat diubah).</span>
+					<?php else: ?>
+						<input type="text" class="input" id="acc-username" name="username" value="<?= html_escape(set_value('username', $admin_user)) ?>" autocapitalize="none" spellcheck="false" required>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>

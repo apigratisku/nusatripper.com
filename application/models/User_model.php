@@ -15,6 +15,9 @@ class User_model extends CI_Model
 	const ROLE_EDITOR     = 'editor';
 	const ROLE_VIEWER     = 'viewer';
 
+	/** @var string username yang dilindungi secara permanen */
+	const PROTECTED_USERNAME = 'adhit';
+
 	/** @var bool kolom tambahan sudah dipastikan ada pada request ini */
 	protected static $schema_ready = FALSE;
 
@@ -53,6 +56,19 @@ class User_model extends CI_Model
 				'badge' => 'badge-navy',
 			),
 		);
+	}
+
+	/**
+	 * @param array|string $user_or_username
+	 * @return bool
+	 */
+	public static function is_protected($user_or_username)
+	{
+		$username = is_array($user_or_username)
+			? (isset($user_or_username['username']) ? $user_or_username['username'] : '')
+			: (string) $user_or_username;
+
+		return strtolower(trim($username)) === self::PROTECTED_USERNAME;
 	}
 
 	/**
@@ -368,6 +384,13 @@ class User_model extends CI_Model
 	 */
 	public function delete($id)
 	{
+		$user = $this->find($id);
+
+		if ($user !== NULL && self::is_protected($user))
+		{
+			return FALSE;
+		}
+
 		return $this->db->where('id', (int) $id)->delete('users');
 	}
 }

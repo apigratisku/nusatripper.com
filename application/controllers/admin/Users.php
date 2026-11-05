@@ -110,6 +110,12 @@ class Users extends Admin_Controller
 			redirect('admin/users');
 		}
 
+		if (User_model::is_protected($user) && ! empty($user['is_active']))
+		{
+			$this->flash('error', 'Akun permanen ini dilindungi dan tidak dapat dinonaktifkan.');
+			redirect('admin/users');
+		}
+
 		$active = empty($user['is_active']);
 
 		if ( ! $active && ! $this->has_other_superadmin($user))
@@ -140,6 +146,12 @@ class Users extends Admin_Controller
 		if ((int) $id === (int) $this->admin['id'])
 		{
 			$this->flash('error', 'Anda tidak dapat menghapus akun sendiri.');
+			redirect('admin/users');
+		}
+
+		if (User_model::is_protected($user))
+		{
+			$this->flash('error', 'Akun permanen ini dilindungi dan tidak dapat dihapus oleh siapa pun.');
 			redirect('admin/users');
 		}
 
@@ -273,6 +285,19 @@ class Users extends Admin_Controller
 
 		// Akun ini tetap harus menyisakan minimal satu Super Admin aktif.
 		$target = $id > 0 ? $this->user_model->find($id) : NULL;
+
+		if ($target !== NULL && User_model::is_protected($target))
+		{
+			if (strtolower($data['username']) !== User_model::PROTECTED_USERNAME)
+			{
+				return 'Username akun permanen tidak boleh diubah.';
+			}
+
+			if ( ! $data['is_active'])
+			{
+				return 'Akun permanen ini tidak dapat dinonaktifkan.';
+			}
+		}
 
 		if ($target !== NULL && ! empty($target['role']) && $target['role'] === User_model::ROLE_SUPERADMIN)
 		{

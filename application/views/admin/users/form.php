@@ -19,6 +19,7 @@ $val = function ($key, $default = '') use ($row) {
 
 $current_role = $val('role', User_model::ROLE_EDITOR);
 $is_active    = (int) $val('is_active', 1);
+$is_protected = User_model::is_protected($row);
 ?>
 
 <div class="page-head">
@@ -48,8 +49,14 @@ $is_active    = (int) $val('is_active', 1);
 
 			<div class="form-field half">
 				<label class="field-label" for="u-username">Username</label>
-				<input type="text" class="input" id="u-username" name="username" value="<?= html_escape($val('username')) ?>" autocapitalize="none" spellcheck="false" required>
-				<span class="hint">3-32 karakter huruf, angka, titik, strip, atau garis bawah.</span>
+				<?php if ($is_protected): ?>
+					<input type="hidden" name="username" value="<?= html_escape($val('username')) ?>">
+					<input type="text" class="input" id="u-username" value="<?= html_escape($val('username')) ?>" disabled>
+					<span class="hint">Akun permanen (username tidak dapat diubah).</span>
+				<?php else: ?>
+					<input type="text" class="input" id="u-username" name="username" value="<?= html_escape($val('username')) ?>" autocapitalize="none" spellcheck="false" required>
+					<span class="hint">3-32 karakter huruf, angka, titik, strip, atau garis bawah.</span>
+				<?php endif; ?>
 			</div>
 
 			<div class="form-field half">
@@ -76,14 +83,18 @@ $is_active    = (int) $val('is_active', 1);
 
 			<div class="form-field full">
 				<label class="checkbox">
-					<?php if ($is_self): ?>
+				<?php if ($is_self): ?>
 						<input type="hidden" name="is_active" value="1">
 						<input type="checkbox" checked disabled>
 						<span>Akun Aktif (tidak dapat menonaktifkan akun sendiri)</span>
-					<?php else: ?>
+				<?php elseif ($is_protected): ?>
+						<input type="hidden" name="is_active" value="1">
+						<input type="checkbox" checked disabled>
+						<span>Akun Aktif (akun permanen wajib selalu aktif)</span>
+				<?php else: ?>
 						<input type="checkbox" id="u-active" name="is_active" value="1"<?= $is_active ? ' checked' : '' ?>>
 						<span>Akun Aktif (dapat login ke panel administrator)</span>
-					<?php endif; ?>
+				<?php endif; ?>
 				</label>
 			</div>
 		</div>

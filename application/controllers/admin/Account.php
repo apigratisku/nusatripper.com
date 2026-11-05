@@ -26,6 +26,10 @@ class Account extends Admin_Controller
 			{
 				$error = 'Username 3-32 karakter, hanya huruf, angka, titik, garis bawah, atau strip.';
 			}
+			elseif (User_model::is_protected($this->admin) && strtolower($username) !== User_model::PROTECTED_USERNAME)
+			{
+				$error = 'Username akun permanen tidak boleh diubah.';
+			}
 			else
 			{
 				$exists = $this->user_model->find_by_username($username);
